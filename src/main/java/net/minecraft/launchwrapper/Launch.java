@@ -125,14 +125,12 @@ public class Launch {
                 }
 
                 // Now, iterate all the tweakers we just instantiated
-                for (final Iterator<ITweaker> it = tweakers.iterator(); it.hasNext(); ) {
-                    final ITweaker tweaker = it.next();
+                while(!tweakers.isEmpty()) {
+                    final ITweaker tweaker = tweakers.remove(0);
                     logger.info("Calling tweak class {}", tweaker.getClass().getName());
                     tweaker.acceptOptions(options.valuesOf(nonOption));
                     tweaker.injectIntoClassLoader(classLoader);
                     allTweakers.add(tweaker);
-                    // again, remove from the list once we've processed it, so we don't get duplicates
-                    it.remove();
                 }
                 // continue around the loop until there's no tweak classes
             }
