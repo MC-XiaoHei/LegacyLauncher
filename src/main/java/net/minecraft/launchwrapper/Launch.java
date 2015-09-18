@@ -5,9 +5,19 @@ import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.apache.logging.log4j.Level;
 
+import java.io.File;
 import java.lang.reflect.Method;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class Launch {
     private static final String DEFAULT_TWEAK = "net.minecraft.launchwrapper.DummyTweaker";
@@ -19,9 +29,31 @@ public class Launch {
     }
 
     private Launch() {
-        final URLClassLoader ucl = (URLClassLoader) getClass().getClassLoader();
-        classLoader = new LaunchClassLoader(ucl.getURLs());
+        if (getClass().getClassLoader() instanceof URLClassLoader) {
+            final URLClassLoader ucl = (URLClassLoader) getClass().getClassLoader();
+            classLoader = new LaunchClassLoader(ucl.getURLs());
+        } else {
+            classLoader = new LaunchClassLoader(getURLs());
+        }
         Thread.currentThread().setContextClassLoader(classLoader);
+    }
+
+    private URL[] getURLs() {
+        String cp = System.getProperty("java.class.path");
+        String[] elements = cp.split(File.pathSeparator);
+        if (elements.length == 0) {
+            elements = new String[] { "" };
+        }
+        URL[] urls = new URL[elements.length];
+        for (int i = 0; i < elements.length; i++) {
+            try {
+                URL url = new File(elements[i]).toURI().toURL();
+                urls[i] = url;
+            } catch (MalformedURLException ignore) {
+                // malformed file string or class path element does not exist
+            }
+        }
+        return urls;
     }
 
     private void launch(String[] args) {
