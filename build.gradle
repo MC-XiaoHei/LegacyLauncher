@@ -1,6 +1,7 @@
 apply plugin: 'maven'
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'idea'
 
 repositories {
     maven {
@@ -11,7 +12,7 @@ repositories {
 
 group = 'net.minecraft'
 archivesBaseName = 'launchwrapper'
-version = '1.12'
+version = '1.13-mikroskeem'
 sourceCompatibility = 1.8
 
 dependencies {
@@ -34,14 +35,40 @@ artifacts {
 def repoDir = new File(projectDir, "repo")
 repoDir.mkdirs()
 
+/* Utility to get repository credentials */
+String[] getMavenCreds(String repoName) {
+    def mavenSettings = new XmlParser()
+            .parseText new File(System.getProperty("user.home"), ".m2/settings.xml").getText()
+
+    String[] authData = new String[2]
+
+    mavenSettings.servers.forEach { serverElemNode ->
+        def serverElem = serverElemNode.value()
+        if(serverElem.id[0].value()[0] == repoName){
+            authData[0] = serverElem.username[0].value()[0]
+            authData[1] = serverElem.password[0].value()[0]
+        }
+    }
+
+    return (authData[0] == null || authData[1] == null)? null : authData
+}
+
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://" + repoDir.absolutePath)
+            def authData = getMavenCreds "mikroskeem-repo"
+            if(authData != null) {
+                repository(url: "https://repo.wut.ee/repository/mikroskeem-repo") {
+                    authentication(userName: authData[0], password: authData[1])
+                }
+            } else {
+                repository(url: "file://" + repoDir.absolutePath)
+            }
 
             pom.project {
-                description 'Minecraft LegacyLauncher'
-                url 'http://github.com/Mojang/LegacyLauncher'
+                name "LegacyLauncher"
+                description 'Minecraft LegacyLauncher - mikroskeem\'s fork'
+                url 'http://github.com/mikroskeem/LegacyLauncher'
             }
         }
     }
