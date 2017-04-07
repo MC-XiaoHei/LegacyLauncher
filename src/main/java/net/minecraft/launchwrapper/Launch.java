@@ -3,37 +3,24 @@ package net.minecraft.launchwrapper;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
-
-import java.io.File;
-import java.lang.reflect.Method;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.logging.log4j.Level;
 
+import java.lang.reflect.Method;
+import java.net.URLClassLoader;
+import java.util.*;
+
 public class Launch {
-    private static final String DEFAULT_TWEAK = "net.minecraft.launchwrapper.VanillaTweaker";
-    public static File minecraftHome;
-    public static File assetsDir;
-    public static Map<String,Object> blackboard;
+    private static final String DEFAULT_TWEAK = "net.minecraft.launchwrapper.DummyTweaker";
+    public static LaunchClassLoader classLoader;
+    public static Map<String,Object> blackboard = new HashMap<>();
 
     public static void main(String[] args) {
         new Launch().launch(args);
     }
 
-    public static LaunchClassLoader classLoader;
-
     private Launch() {
         final URLClassLoader ucl = (URLClassLoader) getClass().getClassLoader();
         classLoader = new LaunchClassLoader(ucl.getURLs());
-        blackboard = new HashMap<String,Object>();
         Thread.currentThread().setContextClassLoader(classLoader);
     }
 
@@ -41,16 +28,10 @@ public class Launch {
         final OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();
 
-        final OptionSpec<String> profileOption = parser.accepts("version", "The version we launched with").withRequiredArg();
-        final OptionSpec<File> gameDirOption = parser.accepts("gameDir", "Alternative game directory").withRequiredArg().ofType(File.class);
-        final OptionSpec<File> assetsDirOption = parser.accepts("assetsDir", "Assets directory").withRequiredArg().ofType(File.class);
         final OptionSpec<String> tweakClassOption = parser.accepts("tweakClass", "Tweak class(es) to load").withRequiredArg().defaultsTo(DEFAULT_TWEAK);
         final OptionSpec<String> nonOption = parser.nonOptions();
 
         final OptionSet options = parser.parse(args);
-        minecraftHome = options.valueOf(gameDirOption);
-        assetsDir = options.valueOf(assetsDirOption);
-        final String profileName = options.valueOf(profileOption);
         final List<String> tweakClassNames = new ArrayList<String>(options.valuesOf(tweakClassOption));
 
         final List<String> argumentList = new ArrayList<String>();
@@ -79,7 +60,7 @@ public class Launch {
             // that reinserts itself with a new identity every pass
             // It is here to allow tweakers to "push" new tweak classes onto the 'stack' of
             // tweakers to evaluate allowing for cascaded discovery and injection of tweakers
-            do {
+            while (!tweakClassNames.isEmpty()) {
                 for (final Iterator<String> it = tweakClassNames.iterator(); it.hasNext(); ) {
                     final String tweakName = it.next();
                     // Safety check - don't reprocess something we've already visited
@@ -111,14 +92,14 @@ public class Launch {
                 for (final Iterator<ITweaker> it = tweakers.iterator(); it.hasNext(); ) {
                     final ITweaker tweaker = it.next();
                     LogWrapper.log(Level.INFO, "Calling tweak class %s", tweaker.getClass().getName());
-                    tweaker.acceptOptions(options.valuesOf(nonOption), minecraftHome, assetsDir, profileName);
+                    tweaker.acceptOptions(options.valuesOf(nonOption));
                     tweaker.injectIntoClassLoader(classLoader);
                     allTweakers.add(tweaker);
                     // again, remove from the list once we've processed it, so we don't get duplicates
                     it.remove();
                 }
                 // continue around the loop until there's no tweak classes
-            } while (!tweakClassNames.isEmpty());
+            }
 
             // Once we're done, we then ask all the tweakers for their arguments and add them all to the
             // master argument list
@@ -127,9 +108,10 @@ public class Launch {
             }
 
             // Finally we turn to the primary tweaker, and let it tell us where to go to launch
+            assert primaryTweaker != null;
             final String launchTarget = primaryTweaker.getLaunchTarget();
             final Class<?> clazz = Class.forName(launchTarget, false, classLoader);
-            final Method mainMethod = clazz.getMethod("main", new Class[]{String[].class});
+            final Method mainMethod = clazz.getMethod("main", String[].class);
 
             LogWrapper.info("Launching wrapped minecraft {%s}", launchTarget);
             mainMethod.invoke(null, (Object) argumentList.toArray(new String[argumentList.size()]));
