@@ -187,7 +187,7 @@ public class LaunchClassLoader extends URLClassLoader {
     }
 
     private void saveTransformedClass(final byte[] data, final String transformedName) {
-        if (tempFolder == null) {
+        if (tempFolder == null || transformedName == null || data == null) {
             return;
         }
 
