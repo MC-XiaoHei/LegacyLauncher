@@ -12,7 +12,7 @@ repositories {
 
 group = 'net.minecraft'
 archivesBaseName = 'launchwrapper'
-version = '1.13-mikroskeem'
+version = '1.14-mikroskeem'
 sourceCompatibility = 1.8
 
 dependencies {
