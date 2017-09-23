@@ -4,6 +4,8 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -20,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Launch {
+    private static final Logger logger = LogManager.getLogger("LaunchWrapper");
     private static final String DEFAULT_TWEAK = "net.minecraft.launchwrapper.DummyTweaker";
     public static LaunchClassLoader classLoader;
     public static Map<String,Object> blackboard = new HashMap<>();
@@ -64,9 +67,9 @@ public class Launch {
         final OptionSpec<String> nonOption = parser.nonOptions();
 
         final OptionSet options = parser.parse(args);
-        final List<String> tweakClassNames = new ArrayList<String>(options.valuesOf(tweakClassOption));
+        final List<String> tweakClassNames = new ArrayList<>(options.valuesOf(tweakClassOption));
 
-        final List<String> argumentList = new ArrayList<String>();
+        final List<String> argumentList = new ArrayList<>();
         // This list of names will be interacted with through tweakers. They can append to this list
         // any 'discovered' tweakers from their preferred mod loading mechanism
         // By making this object discoverable and accessible it's possible to perform
@@ -78,11 +81,11 @@ public class Launch {
         blackboard.put("ArgumentList", argumentList);
 
         // This is to prevent duplicates - in case a tweaker decides to add itself or something
-        final Set<String> allTweakerNames = new HashSet<String>();
+        final Set<String> allTweakerNames = new HashSet<>();
         // The 'definitive' list of tweakers
-        final List<ITweaker> allTweakers = new ArrayList<ITweaker>();
+        final List<ITweaker> allTweakers = new ArrayList<>();
         try {
-            final List<ITweaker> tweakers = new ArrayList<ITweaker>(tweakClassNames.size() + 1);
+            final List<ITweaker> tweakers = new ArrayList<>(tweakClassNames.size() + 1);
             // The list of tweak instances - may be useful for interoperability
             blackboard.put("Tweaks", tweakers);
             // The primary tweaker (the first one specified on the command line) will actually
@@ -97,14 +100,14 @@ public class Launch {
                     final String tweakName = it.next();
                     // Safety check - don't reprocess something we've already visited
                     if (allTweakerNames.contains(tweakName)) {
-                        LogWrapper.log(Level.WARN, "Tweak class name %s has already been visited -- skipping", tweakName);
+                        logger.log(Level.WARN, "Tweak class name {} has already been visited -- skipping", tweakName);
                         // remove the tweaker from the stack otherwise it will create an infinite loop
                         it.remove();
                         continue;
                     } else {
                         allTweakerNames.add(tweakName);
                     }
-                    LogWrapper.log(Level.INFO, "Loading tweak class name %s", tweakName);
+                    logger.info("Loading tweak class name {}", tweakName);
 
                     // Ensure we allow the tweak class to load with the parent classloader
                     classLoader.addClassLoaderExclusion(tweakName.substring(0,tweakName.lastIndexOf('.')));
@@ -116,7 +119,7 @@ public class Launch {
                     it.remove();
                     // If we haven't visited a tweaker yet, the first will become the 'primary' tweaker
                     if (primaryTweaker == null) {
-                        LogWrapper.log(Level.INFO, "Using primary tweak class name %s", tweakName);
+                        logger.info("Using primary tweak class name {}", tweakName);
                         primaryTweaker = tweaker;
                     }
                 }
@@ -124,7 +127,7 @@ public class Launch {
                 // Now, iterate all the tweakers we just instantiated
                 for (final Iterator<ITweaker> it = tweakers.iterator(); it.hasNext(); ) {
                     final ITweaker tweaker = it.next();
-                    LogWrapper.log(Level.INFO, "Calling tweak class %s", tweaker.getClass().getName());
+                    logger.info("Calling tweak class {}", tweaker.getClass().getName());
                     tweaker.acceptOptions(options.valuesOf(nonOption));
                     tweaker.injectIntoClassLoader(classLoader);
                     allTweakers.add(tweaker);
@@ -146,10 +149,10 @@ public class Launch {
             final Class<?> clazz = Class.forName(launchTarget, false, classLoader);
             final Method mainMethod = clazz.getMethod("main", String[].class);
 
-            LogWrapper.info("Launching wrapped minecraft {%s}", launchTarget);
+            logger.info("Launching wrapped Minecraft {{}}", launchTarget);
             mainMethod.invoke(null, (Object) argumentList.toArray(new String[argumentList.size()]));
         } catch (Exception e) {
-            LogWrapper.log(Level.ERROR, e, "Unable to launch");
+            logger.error("Unable to launch", e);
             System.exit(1);
         }
     }

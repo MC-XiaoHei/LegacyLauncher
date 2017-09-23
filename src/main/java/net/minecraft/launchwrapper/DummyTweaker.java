@@ -13,7 +13,7 @@ public class DummyTweaker implements ITweaker {
 
     public static void main(String... args){
         String[] text = new String[]{
-                "This is dummy tweaker class. You should specify tweak class using",
+                "This is dummy tweaker class. You should specify tweak class using ",
                 "'--tweakClass' argument or hook into LegacyLauncher programmatically."
         };
         System.out.println(String.join("\n", text));
