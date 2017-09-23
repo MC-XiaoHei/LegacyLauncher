@@ -10,7 +10,7 @@ repositories {
 
 group = 'net.minecraft'
 archivesBaseName = 'launchwrapper'
-version = '1.14-mikroskeem'
+version = '1.15-mikroskeem'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8

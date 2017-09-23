@@ -110,7 +110,7 @@ public class Launch {
                     logger.info("Loading tweak class name {}", tweakName);
 
                     // Ensure we allow the tweak class to load with the parent classloader
-                    classLoader.addClassLoaderExclusion(tweakName.substring(0,tweakName.lastIndexOf('.')));
+                    classLoader.getClassLoaderExclusions().add(tweakName.substring(0, tweakName.lastIndexOf('.')));
                     final ITweaker tweaker = (ITweaker) Class.forName(tweakName, true, classLoader)
                             .getConstructor().newInstance();
                     tweakers.add(tweaker);

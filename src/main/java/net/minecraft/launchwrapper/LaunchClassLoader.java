@@ -96,6 +96,11 @@ public class LaunchClassLoader extends URLClassLoader {
         }
     }
 
+    /**
+     * Registers transformer class
+     *
+     * @param transformerClassName Fully qualified transformer class name, see {@link Class#getName()}
+     */
     public void registerTransformer(@NotNull String transformerClassName) {
         try {
             IClassTransformer transformer = (IClassTransformer) loadClass(transformerClassName).newInstance();
@@ -107,6 +112,9 @@ public class LaunchClassLoader extends URLClassLoader {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Class<?> findClass(final String name) throws ClassNotFoundException {
         if (invalidClasses.contains(name)) {
@@ -270,12 +278,22 @@ public class LaunchClassLoader extends URLClassLoader {
         return basicClass;
     }
 
+    /**
+     * Adds an {@link URL} to classloader
+     *
+     * @param url {@link URL} to add
+     */
     @Override
     public void addURL(final URL url) {
         super.addURL(url);
         sources.add(url);
     }
 
+    /**
+     * Gets list of added {@link URL}s to this classloader
+     *
+     * @return Unmodifiable list of added {@link URL}s
+     */
     @NotNull
     public List<URL> getSources() {
         return Collections.unmodifiableList(sources);
@@ -318,21 +336,72 @@ public class LaunchClassLoader extends URLClassLoader {
         return buffer;
     }
 
+    /**
+     * Gets list of registered {@link IClassTransformer} instances
+     *
+     * @return List of registered {@link IClassTransformer} instances
+     */
     @NotNull
     public List<IClassTransformer> getTransformers() {
         return Collections.unmodifiableList(transformers);
     }
 
+    /**
+     * Adds classloader exclusion. Fully qualified class names starting with {@code toExclude} will be loaded
+     * from parent classloader
+     *
+     * @param toExclude Part of fully qualified class name
+     * @deprecated Use {@link #getClassLoaderExclusions()} instead
+     */
+    @Deprecated
     public void addClassLoaderExclusion(@NotNull String toExclude) {
         classLoaderExceptions.add(toExclude);
     }
 
+    /**
+     * Gets a {@link Set} of classloader exclusions.
+     *
+     * Classlaoder exclusions look like this: {@code com.mojang.authlib.}, so that means all classes and subclasses
+     * in {@code com.mojang.authlib} class would be loaded from parent classloader
+     *
+     * @return {@link Set} of classloader exclusions
+     */
+    public Set<String> getClassLoaderExclusions() {
+        return classLoaderExceptions;
+    }
+
+    /**
+     * Adds transformer exclusion. Given classes won't be transformed by {@link IClassTransformer}s
+     *
+     * @param toExclude Part of fully qualified class name
+     * @see #getTransformers() For list of registered transformers
+     * @deprecated Use {@link #getTransformerExclusions()} instead.
+     */
+    @Deprecated
     public void addTransformerExclusion(@NotNull String toExclude) {
         transformerExceptions.add(toExclude);
     }
 
+    /**
+     * Gets a {@link Set} of transformer exclusions.
+     *
+     * Transformer exclusions look like this: {@code com.mojang.authlib.}, so that means all classes and subclasses
+     * in {@code com.mojang.authlib} class won't be transformed
+     *
+     * @return {@link Set} of transformer exclusions.
+     */
+    public Set<String> getTransformerExclusions() {
+        return transformerExceptions;
+    }
+
+    /**`
+     * Gets class raw bytes
+     *
+     * @param name Class name
+     * @return Class raw bytes, or null if class was not found
+     */
     @Nullable
-    public byte[] getClassBytes(@NotNull String name) throws IOException {
+    public byte[] getClassBytes(@NotNull String name) {
         if (negativeResourceCache.contains(name)) {
             return null;
         } else if (resourceCache.containsKey(name)) {
@@ -359,17 +428,21 @@ public class LaunchClassLoader extends URLClassLoader {
         }
         try(InputStream classStream = classResource.openStream()) {
             if (DEBUG) logger.trace("Loading class {} from resource {}", name, classResource.toString());
-            byte[] data = readFully(classStream);
-            if(data == null) {
-                if(DEBUG) logger.trace("Failed to load class {} from resource {}", name, classResource.toString());
-                negativeResourceCache.add(name);
-                return null;
-            }
+            byte[] data = requireNonNull(readFully(classStream));
             resourceCache.put(name, data);
             return data;
+        } catch (Exception e) {
+            if(DEBUG) logger.trace("Failed to load class {} from resource {}", name, classResource.toString());
+            negativeResourceCache.add(name);
+            return null;
         }
     }
 
+    /**
+     * Clears negative resource entries (resources which failed to load in this classloader)
+     *
+     * @param entriesToClear Entries to clear
+     */
     public void clearNegativeEntries(@NotNull Set<String> entriesToClear) {
         negativeResourceCache.removeAll(entriesToClear);
     }
