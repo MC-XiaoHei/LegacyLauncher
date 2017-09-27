@@ -40,6 +40,10 @@ import static java.util.Objects.requireNonNull;
 
 
 public class LaunchClassLoader extends URLClassLoader {
+    static {
+        ClassLoader.registerAsParallelCapable();
+    }
+
     private static final Logger logger = LogManager.getLogger("LaunchWrapper");
     public static final int BUFFER_SIZE = 1 << 12;
     private List<URL> sources;
