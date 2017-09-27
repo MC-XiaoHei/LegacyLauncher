@@ -324,7 +324,7 @@ public class LaunchClassLoader extends URLClassLoader {
             System.arraycopy(buffer, 0, result, 0, totalLength);
             return result;
         } catch (Throwable t) {
-            logger.warn("Problem loading class", t);
+            logger.warn("Problem reading stream fully", t);
             return null;
         }
     }
