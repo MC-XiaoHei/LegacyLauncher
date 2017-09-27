@@ -66,11 +66,16 @@ import static java.util.Objects.requireNonNull;
 
 
 public class LaunchClassLoader extends URLClassLoader {
+    private static final Logger logger = LogManager.getLogger("LaunchWrapper");
+
     static {
-        ClassLoader.registerAsParallelCapable();
+        /* Use this, if you encounter weird issues */
+        if(!Boolean.getBoolean("legacy.dontRegisterLCLAsParallelCapable")) {
+            logger.debug("Registering LaunchClassLoader as parallel capable");
+            ClassLoader.registerAsParallelCapable();
+        }
     }
 
-    private static final Logger logger = LogManager.getLogger("LaunchWrapper");
     public static final int BUFFER_SIZE = 1 << 12;
     private List<URL> sources;
     private ClassLoader parent = getClass().getClassLoader();
