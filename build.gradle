@@ -1,86 +1,123 @@
-apply plugin: 'maven'
-apply plugin: 'java'
-apply plugin: 'eclipse'
-apply plugin: 'idea'
+plugins {
+    id 'java'
+    id 'idea'
+    id 'net.minecrell.licenser' version '0.3'
+}
 
+group = properties.group
+version = properties.version
+
+// Do Java 8
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// Project repositories
 repositories {
     mavenLocal()
     mavenCentral()
 }
 
-group = 'net.minecraft'
-archivesBaseName = 'launchwrapper'
-version = '1.15-mikroskeem'
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
+// Project dependencies
 dependencies {
-    compile 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    compile 'org.ow2.asm:asm-all:5.2'
-    compile 'org.apache.logging.log4j:log4j-api:2.8.1'
-    compile 'org.jetbrains:annotations:15.0'
+    compile group: 'net.sf.jopt-simple', name: 'jopt-simple', version: jopt_simple_version
+    compile group: 'org.ow2.asm', name: 'asm-all', version: asm_version
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4j2_version
+    compile group: 'org.jetbrains', name: 'annotations', version: jb_annotations_version
 }
 
+// Licenser task
+license {
+    header = rootProject.file('etc/HEADER')
+    ignoreFailures = false
+    include "**/*.java"
+}
+
+// Jars
 task sourcesJar(type: Jar) {
     classifier = 'sources'
     from sourceSets.main.allSource
 }
 
-artifacts {
-    archives jar
-    archives sourcesJar
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
-def repoDir = new File(projectDir, "repo")
-repoDir.mkdirs()
-
-/* Utility to get repository credentials */
-String[] getMavenCreds(String repoName) {
-    def mavenSettings = new XmlParser()
-            .parseText new File(System.getProperty("user.home"), ".m2/settings.xml").getText()
-
-    String[] authData = new String[2]
-
-    mavenSettings.servers.forEach { serverElemNode ->
-        def serverElem = serverElemNode.value()
-        if(serverElem.id[0].value()[0] == repoName){
-            authData[0] = serverElem.username[0].value()[0]
-            authData[1] = serverElem.password[0].value()[0]
-        }
-    }
-
-    return (authData[0] == null || authData[1] == null)? null : authData
+// Wrapper task
+task wrapper(type: Wrapper) {
+    gradleVersion = gradle_version
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradle_version-all.zip"
 }
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            def authData = getMavenCreds "mikroskeem-repo"
-            if(authData != null) {
-                repository(url: "https://repo.wut.ee/repository/mikroskeem-repo") {
-                    authentication(userName: authData[0], password: authData[1])
+// Deployment
+if(project.hasProperty('repoUsername') && project.hasProperty('repoPassword')) {
+    apply plugin: 'maven-publish'
+
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                artifactId 'legacylauncher'
+
+                artifact jar
+                artifact sourcesJar
+                artifact javadocJar
+
+                // Customize POM
+                pom.withXml {
+                    def root = asNode()
+                    root.appendNode 'description', project.description
+                    root.appendNode 'name', 'LegacyLauncher'
+                    root.appendNode 'url', 'https://github.com/OrionMinecraft/LegacyLauncher'
+
+                    // <issueManagement>
+                    def issueManagement = root.appendNode 'issueManagement'
+                    issueManagement.appendNode 'system', 'GitHub Issues'
+                    issueManagement.appendNode 'url', 'https://github.com/OrionMinecraft/LegacyLauncher/issues'
+                    // </issueManagement>
+
+                    // <licenses>
+                    def licenses = root.appendNode 'licenses'
+                    // * <license>
+                    def license0 = licenses.appendNode 'license'
+                    license0.appendNode 'name', 'MIT License'
+                    license0.appendNode 'url', 'https://opensource.org/licenses/MIT'
+                    // * </license>
+                    // </licenses>
+
+                    // <developers>
+                    def developers = root.appendNode 'developers'
+                    // * <developer>
+                    def developer0 = developers.appendNode 'developer'
+                    developer0.appendNode 'id', 'mikroskeem'
+                    developer0.appendNode 'name', 'Mark Vainomaa'
+                    developer0.appendNode 'email', 'mikroskeem@mikroskeem.eu'
+                    // * </developer>
+                    // </developers>
+
+                    // <scm>
+                    def scm = root.appendNode 'scm'
+                    scm.appendNode 'connection', 'scm:git@github.com:OrionMinecraft/LegacyLauncher.git'
+                    scm.appendNode 'developerConnection', 'scm:git@github.com:OrionMinecraft/LegacyLauncher.git'
+                    scm.appendNode 'url', 'https://github.com/OrionMinecraft/LegacyLauncher'
+                    // </scm>
+
+                    new XmlNodePrinter(preserveWhitespace: true).print root
                 }
-            } else {
-                repository(url: "file://" + repoDir.absolutePath)
             }
+        }
 
-            pom.project {
-                name "LegacyLauncher"
-                description 'Minecraft LegacyLauncher - mikroskeem\'s fork'
-                url 'http://github.com/mikroskeem/LegacyLauncher'
+        repositories {
+            mavenLocal()
+
+            maven {
+                credentials {
+                    username repoUsername
+                    password repoPassword
+                }
+
+                name = 'mikroskeem-repo'
+                url = 'https://repo.wut.ee/repository/mikroskeem-repo'
             }
         }
     }
-
-    doLast {
-        // Purge all annoying files that arent needed
-        repoDir.traverse(type: groovy.io.FileType.FILES, nameFilter: ~/.*\.(xml(?:\.sha1)?|md5)$/) {
-            it.delete()
-        }
-    }
-}
-
-clean << {
-    repoDir.deleteDir()
 }
