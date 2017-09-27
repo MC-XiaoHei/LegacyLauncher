@@ -185,8 +185,14 @@ public class LaunchClassLoader extends URLClassLoader {
                 } else {
                     Package pkg = getPackage(packageName);
                     if (pkg == null) {
+                        /*
+                         * Note: this part of code makes me die every day more and more because of its problems...
+                         * Known problematic code because of this:
+                         * - Needed to create this: https://github.com/OrionMinecraft/FixAAC
+                         */
                         pkg = definePackage(packageName, null, null, null, null, null, null, null);
                     } else if (pkg.isSealed()) {
+                        /* urlConnection is always null? */
                         URL url = urlConnection != null ? urlConnection.getURL() : null;
                         logger.error("The URL {} is defining elements for sealed path {}", url, packageName);
                     }
