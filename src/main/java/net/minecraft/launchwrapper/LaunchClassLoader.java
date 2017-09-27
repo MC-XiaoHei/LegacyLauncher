@@ -32,6 +32,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -91,7 +92,7 @@ public class LaunchClassLoader extends URLClassLoader {
 
     @Nullable private IClassNameTransformer renameTransformer = null;
 
-    private final ThreadLocal<byte[]> loadBuffer = new ThreadLocal<>();
+    private final ThreadLocal<byte[]> loadBuffer = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
     private static final String[] RESERVED_NAMES = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
 
@@ -345,39 +346,18 @@ public class LaunchClassLoader extends URLClassLoader {
 
     @Nullable
     private byte[] readFully(@NotNull InputStream stream) {
-        try {
-            byte[] buffer = getOrCreateBuffer();
+        try(ByteArrayOutputStream os = new ByteArrayOutputStream(stream.available())) {
+            int readBytes;
+            byte[] buffer = loadBuffer.get();
 
-            int read;
-            int totalLength = 0;
-            while ((read = stream.read(buffer, totalLength, buffer.length - totalLength)) != -1) {
-                totalLength += read;
+            while ((readBytes = stream.read(buffer, 0, buffer.length)) != -1)
+                os.write(buffer, 0, readBytes);
 
-                // Extend our buffer
-                if (totalLength >= buffer.length - 1) {
-                    byte[] newBuffer = new byte[buffer.length + BUFFER_SIZE];
-                    System.arraycopy(buffer, 0, newBuffer, 0, buffer.length);
-                    buffer = newBuffer;
-                }
-            }
-
-            final byte[] result = new byte[totalLength];
-            System.arraycopy(buffer, 0, result, 0, totalLength);
-            return result;
+            return os.toByteArray();
         } catch (Throwable t) {
             logger.warn("Problem reading stream fully", t);
             return null;
         }
-    }
-
-    @NotNull
-    private byte[] getOrCreateBuffer() {
-        byte[] buffer = loadBuffer.get();
-        if (buffer == null) {
-            loadBuffer.set(new byte[BUFFER_SIZE]);
-            buffer = loadBuffer.get();
-        }
-        return buffer;
     }
 
     /**
