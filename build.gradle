@@ -30,6 +30,11 @@ license {
     header = rootProject.file('etc/HEADER')
     ignoreFailures = false
     include "**/*.java"
+
+    // Because org.spongepowered.asm.launch.MixinBootstrap does this:
+    // if(MixinBootstrap.findInStackTrace("net.minecraft.launchwrapper.Launch", "launch") > 132) {
+    //     *we are not in pre-init some mixins may be skipped blah blah*
+    exclude 'net/minecraft/launchwrapper/Launch.java'
 }
 
 // Jars
