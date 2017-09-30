@@ -252,77 +252,6 @@ public class LaunchClassLoader extends URLClassLoader {
         }
     }
 
-    private void saveTransformedClass(@NotNull byte[] data, @NotNull String transformedName) throws IOException {
-        Path classFile = Paths.get(DUMP_PATH.toString(), transformedName.replace('.', File.separatorChar) + ".class");
-
-        if(Files.notExists(classFile.getParent()))
-            Files.createDirectories(classFile);
-
-        if(Files.exists(classFile)) {
-            logger.warn("Transformed class \"{}\" already exists! Deleting old class", transformedName);
-            Files.delete(classFile);
-        }
-
-        try(OutputStream output = Files.newOutputStream(classFile, StandardOpenOption.CREATE_NEW)) {
-            logger.debug("Saving transformed class \"{}\" to \"{}\"", transformedName, classFile.toString());
-            output.write(data);
-        } catch (IOException ex) {
-            logger.log(Level.WARN, "Could not save transformed class \"{}\"", transformedName, ex);
-        }
-    }
-
-    @NotNull
-    private String untransformName(@NotNull String name) {
-        return renameTransformer != null ? renameTransformer.unmapClassName(name) : name;
-    }
-
-    @NotNull
-    private String transformName(@NotNull String name) {
-        return renameTransformer != null ? renameTransformer.remapClassName(name) : name;
-    }
-
-    private boolean isSealed(@NotNull String path, @NotNull Manifest manifest) {
-        Attributes attributes = manifest.getAttributes(path);
-        String sealed = attributes != null ? attributes.getValue(Name.SEALED) : null;
-
-        if(sealed == null)
-            sealed = (attributes = manifest.getMainAttributes()) != null ? attributes.getValue(Name.SEALED) : null;
-        return "true".equalsIgnoreCase(sealed);
-    }
-
-    @Nullable
-    private URLConnection findCodeSourceConnectionFor(@NotNull String name) {
-        final URL resource = findResource(name);
-        if (resource != null) {
-            try {
-                return resource.openConnection();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
-
-        return null;
-    }
-
-    @NotNull
-    private byte[] runTransformers(@NotNull String name, @NotNull String transformedName, @NotNull byte[] basicClass) {
-        if (DEBUG_FINER) {
-            logger.trace("Beginning transform of {{} ({})} Start Length: {}", name, transformedName, basicClass.length);
-            for (final IClassTransformer transformer : transformers) {
-                final String transName = transformer.getClass().getName();
-                logger.trace("Before Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass.length);
-                basicClass = transformer.transform(name, transformedName, basicClass);
-                logger.trace("After  Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass.length);
-            }
-            logger.trace("Ending transform of {{} ({})} Start Length: {}", name, transformedName, basicClass.length);
-        } else {
-            for (final IClassTransformer transformer : transformers) {
-                basicClass = transformer.transform(name, transformedName, basicClass);
-            }
-        }
-        return basicClass;
-    }
-
     /**
      * Adds an {@link URL} to classloader
      *
@@ -342,22 +271,6 @@ public class LaunchClassLoader extends URLClassLoader {
     @NotNull
     public List<URL> getSources() {
         return Collections.unmodifiableList(sources);
-    }
-
-    @Nullable
-    private byte[] readFully(@NotNull InputStream stream) {
-        try(ByteArrayOutputStream os = new ByteArrayOutputStream(stream.available())) {
-            int readBytes;
-            byte[] buffer = loadBuffer.get();
-
-            while ((readBytes = stream.read(buffer, 0, buffer.length)) != -1)
-                os.write(buffer, 0, readBytes);
-
-            return os.toByteArray();
-        } catch (Throwable t) {
-            logger.warn("Problem reading stream fully", t);
-            return null;
-        }
     }
 
     /**
@@ -469,5 +382,92 @@ public class LaunchClassLoader extends URLClassLoader {
      */
     public void clearNegativeEntries(@NotNull Set<String> entriesToClear) {
         negativeResourceCache.removeAll(entriesToClear);
+    }
+
+    @Nullable
+    private byte[] readFully(@NotNull InputStream stream) {
+        try(ByteArrayOutputStream os = new ByteArrayOutputStream(stream.available())) {
+            int readBytes;
+            byte[] buffer = loadBuffer.get();
+
+            while ((readBytes = stream.read(buffer, 0, buffer.length)) != -1)
+                os.write(buffer, 0, readBytes);
+
+            return os.toByteArray();
+        } catch (Throwable t) {
+            logger.warn("Problem reading stream fully", t);
+            return null;
+        }
+    }
+
+    private void saveTransformedClass(@NotNull byte[] data, @NotNull String transformedName) throws IOException {
+        Path classFile = Paths.get(DUMP_PATH.toString(), transformedName.replace('.', File.separatorChar) + ".class");
+
+        if(Files.notExists(classFile.getParent()))
+            Files.createDirectories(classFile);
+
+        if(Files.exists(classFile)) {
+            logger.warn("Transformed class \"{}\" already exists! Deleting old class", transformedName);
+            Files.delete(classFile);
+        }
+
+        try(OutputStream output = Files.newOutputStream(classFile, StandardOpenOption.CREATE_NEW)) {
+            logger.debug("Saving transformed class \"{}\" to \"{}\"", transformedName, classFile.toString());
+            output.write(data);
+        } catch (IOException ex) {
+            logger.log(Level.WARN, "Could not save transformed class \"{}\"", transformedName, ex);
+        }
+    }
+
+    @NotNull
+    private String untransformName(@NotNull String name) {
+        return renameTransformer != null ? renameTransformer.unmapClassName(name) : name;
+    }
+
+    @NotNull
+    private String transformName(@NotNull String name) {
+        return renameTransformer != null ? renameTransformer.remapClassName(name) : name;
+    }
+
+    private boolean isSealed(@NotNull String path, @NotNull Manifest manifest) {
+        Attributes attributes = manifest.getAttributes(path);
+        String sealed = attributes != null ? attributes.getValue(Name.SEALED) : null;
+
+        if(sealed == null)
+            sealed = (attributes = manifest.getMainAttributes()) != null ? attributes.getValue(Name.SEALED) : null;
+        return "true".equalsIgnoreCase(sealed);
+    }
+
+    @Nullable
+    private URLConnection findCodeSourceConnectionFor(@NotNull String name) {
+        final URL resource = findResource(name);
+        if (resource != null) {
+            try {
+                return resource.openConnection();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return null;
+    }
+
+    @NotNull
+    private byte[] runTransformers(@NotNull String name, @NotNull String transformedName, @NotNull byte[] basicClass) {
+        if (DEBUG_FINER) {
+            logger.trace("Beginning transform of {{} ({})} Start Length: {}", name, transformedName, basicClass.length);
+            for (final IClassTransformer transformer : transformers) {
+                final String transName = transformer.getClass().getName();
+                logger.trace("Before Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass.length);
+                basicClass = transformer.transform(name, transformedName, basicClass);
+                logger.trace("After  Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass.length);
+            }
+            logger.trace("Ending transform of {{} ({})} Start Length: {}", name, transformedName, basicClass.length);
+        } else {
+            for (final IClassTransformer transformer : transformers) {
+                basicClass = transformer.transform(name, transformedName, basicClass);
+            }
+        }
+        return basicClass;
     }
 }
