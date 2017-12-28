@@ -147,7 +147,7 @@ public class LaunchClassLoader extends URLClassLoader {
             if (transformer instanceof IClassNameTransformer && renameTransformer == null)
                 renameTransformer = (IClassNameTransformer) transformer;
         } catch (Exception e) {
-            logger.log(Level.ERROR, "A critical problem occurred registering the ASM transformer class {}", transformerClassName, e);
+            logger.log(Level.ERROR, "A critical problem occurred registering the transformer class {}", transformerClassName, e);
         }
     }
 
