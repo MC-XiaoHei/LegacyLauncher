@@ -156,20 +156,20 @@ public class LaunchClassLoader extends URLClassLoader {
      */
     @Override
     public Class<?> findClass(final String name) throws ClassNotFoundException {
-        if (invalidClasses.contains(name)) {
+        if(invalidClasses.contains(name)) {
             throw new ClassNotFoundException(name);
         }
 
-        for (final String exception : classLoaderExceptions) {
+        for(final String exception : classLoaderExceptions) {
             if(name.startsWith(exception))
                 return parent.loadClass(name);
         }
 
-        if (cachedClasses.containsKey(name))
+        if(cachedClasses.containsKey(name))
             return cachedClasses.get(name);
 
-        for (final String exception : transformerExceptions) {
-            if (name.startsWith(exception)) {
+        for(final String exception : transformerExceptions) {
+            if(name.startsWith(exception)) {
                 try {
                     final Class<?> clazz = super.findClass(name);
                     cachedClasses.put(name, clazz);
@@ -181,21 +181,49 @@ public class LaunchClassLoader extends URLClassLoader {
             }
         }
 
+        final String transformedName = transformName(name);
+        if(cachedClasses.containsKey(transformedName)) {
+            return cachedClasses.get(transformedName);
+        }
+
+        final String untransformedName = untransformName(name);
+
+        // Get class bytes
+        byte[] classData = getClassBytes(untransformedName);
+
+        byte[] transformedClass = null;
         try {
-            final String transformedName = transformName(name);
-            if (cachedClasses.containsKey(transformedName)) {
-                return cachedClasses.get(transformedName);
+            // Run transformers (running with null class bytes is valid, because transformers may generate classes dynamically)
+            transformedClass = runTransformers(untransformedName, transformedName, classData);
+        } catch (Exception e) {
+            if(DEBUG)
+                logger.log(Level.TRACE, "Exception encountered while transformimg class {}", name, e);
+        }
+
+        // If transformer chain provides no class data, mark given class name invalid and throw CNFE
+        if(transformedClass == null) {
+            invalidClasses.add(name);
+            throw new ClassNotFoundException(name);
+        }
+
+        // Save class if requested so
+        if(DEBUG_SAVE) {
+            try {
+                saveTransformedClass(transformedClass, transformedName);
+            } catch(IOException e){
+                logger.log(Level.WARN, "Failed to save class {}", transformedName, e);
+                e.printStackTrace();
             }
+        }
 
-            final String untransformedName = untransformName(name);
+        // Define package for class
+        int lastDot = untransformedName.lastIndexOf('.');
+        String packageName = lastDot == -1 ? "" : untransformedName.substring(0, lastDot);
+        String fileName = untransformedName.replace('.', '/').concat(".class");
+        URLConnection urlConnection = findCodeSourceConnectionFor(fileName);
+        CodeSigner[] signers = null;
 
-            final int lastDot = untransformedName.lastIndexOf('.');
-            final String packageName = lastDot == -1 ? "" : untransformedName.substring(0, lastDot);
-            final String fileName = untransformedName.replace('.', '/').concat(".class");
-            URLConnection urlConnection = findCodeSourceConnectionFor(fileName);
-
-            CodeSigner[] signers = null;
-
+        try {
             if (lastDot > -1 && !untransformedName.startsWith("net.minecraft.")) {
                 if (urlConnection instanceof JarURLConnection) {
                     final JarURLConnection jarURLConnection = (JarURLConnection) urlConnection;
@@ -221,31 +249,20 @@ public class LaunchClassLoader extends URLClassLoader {
                 } else {
                     Package pkg = getPackage(packageName);
                     if (pkg == null) {
-                        /*
-                         * Note: this part of code makes me die every day more and more because of its problems...
-                         * Known problematic code because of this:
-                         * - Needed to create this: https://github.com/OrionMinecraft/FixAAC
-                         */
                         pkg = definePackage(packageName, null, null, null, null, null, null, null);
                     } else if (pkg.isSealed()) {
-                        /* urlConnection is always null? */
                         URL url = urlConnection != null ? urlConnection.getURL() : null;
                         logger.error("The URL {} is defining elements for sealed path {}", url, packageName);
                     }
                 }
             }
 
-            byte[] classData = requireNonNull(getClassBytes(untransformedName));
-            final byte[] transformedClass = runTransformers(untransformedName, transformedName, classData);
-            if (DEBUG_SAVE) {
-                saveTransformedClass(transformedClass, transformedName);
-            }
-
+            // Define class
             final CodeSource codeSource = urlConnection == null ? null : new CodeSource(urlConnection.getURL(), signers);
             final Class<?> clazz = defineClass(transformedName, transformedClass, 0, transformedClass.length, codeSource);
             cachedClasses.put(transformedName, clazz);
             return clazz;
-        } catch (Throwable e) {
+        } catch (Exception e) {
             invalidClasses.add(name);
             if (DEBUG) logger.log(Level.TRACE, "Exception encountered attempting classloading of {}", name, e);
             throw new ClassNotFoundException(name, e);
@@ -452,21 +469,21 @@ public class LaunchClassLoader extends URLClassLoader {
         return null;
     }
 
-    @NotNull
-    private byte[] runTransformers(@NotNull String name, @NotNull String transformedName, @NotNull byte[] basicClass) {
-        if (DEBUG_FINER) {
-            logger.trace("Beginning transform of {{} ({})} Start Length: {}", name, transformedName, basicClass.length);
-            for (final IClassTransformer transformer : transformers) {
-                final String transName = transformer.getClass().getName();
-                logger.trace("Before Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass.length);
-                basicClass = transformer.transform(name, transformedName, basicClass);
-                logger.trace("After  Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass.length);
-            }
-            logger.trace("Ending transform of {{} ({})} Start Length: {}", name, transformedName, basicClass.length);
-        } else {
-            for (final IClassTransformer transformer : transformers) {
-                basicClass = transformer.transform(name, transformedName, basicClass);
-            }
+    @Nullable
+    private byte[] runTransformers(@NotNull String name, @NotNull String transformedName, @Nullable byte[] basicClass) {
+        if(DEBUG_FINER)
+            logger.trace("Beginning transform of {{} ({})} Start Length: {}", name, transformedName, basicClass != null ? basicClass.length : 0);
+
+        for (final IClassTransformer transformer : transformers) {
+            final String transName = transformer.getClass().getName();
+
+            if(DEBUG_FINER)
+                logger.trace("Before Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass != null ? basicClass.length : 0);
+
+            basicClass = transformer.transform(name, transformedName, basicClass);
+
+            if(DEBUG_FINER)
+                logger.trace("After  Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass != null ? basicClass.length : 0);
         }
         return basicClass;
     }

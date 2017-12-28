@@ -27,6 +27,7 @@
 package net.minecraft.launchwrapper;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 
 /**
@@ -38,9 +39,9 @@ public interface IClassTransformer {
      *
      * @param name             Class unmapped name
      * @param transformedName  Class mapped name, may equal to unmapped name
-     * @param classData       Raw class data
-     * @return Transformed (or supplied) class data
+     * @param classData       Raw class data or null
+     * @return Transformed (or supplied) class data or null
      */
-    @NotNull
-    byte[] transform(@NotNull String name, @NotNull String transformedName, @NotNull byte[] classData);
+    @Nullable
+    byte[] transform(@NotNull String name, @NotNull String transformedName, @Nullable byte[] classData);
 }
