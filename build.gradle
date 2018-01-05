@@ -111,7 +111,7 @@ publishing {
     repositories {
         mavenLocal()
 
-        if(rootProject.properties.hasProperty("wutRepoUsername") && rootProject.properties.hasProperty("wutRepoPassword")) {
+        if(rootProject.hasProperty("wutRepoUsername") && rootProject.hasProperty("wutRepoPassword")) {
             maven {
                 credentials {
                     username rootProject.properties.wutRepoUsername
