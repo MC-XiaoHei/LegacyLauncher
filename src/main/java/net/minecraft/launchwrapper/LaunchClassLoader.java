@@ -99,7 +99,7 @@ public class LaunchClassLoader extends URLClassLoader {
     private static final boolean DEBUG = Boolean.getBoolean("legacy.debugClassLoading");
     private static final boolean DEBUG_FINER = DEBUG && Boolean.getBoolean("legacy.debugClassLoadingFiner");
     private static final boolean DEBUG_SAVE = DEBUG && Boolean.getBoolean("legacy.debugClassLoadingSave");
-    private static final Path DUMP_PATH = Paths.get(System.getProperty("legacy.classDumpPath", "./classloader.out"));
+    private static final Path DUMP_PATH = Paths.get(System.getProperty("legacy.classDumpPath", "./.classloader.out"));
 
     LaunchClassLoader(URL[] sources) {
         super(sources, null);
