@@ -7,15 +7,14 @@ bugfixes and experimental Java 9 support, whereas retaining API-compatibility wi
 Invoke `./gradlew build`
 
 ## Getting LegacyLauncher
-```groovy
+```kotlin
+val legacyLauncherVersion: String by extra
+
 repositories {
-    maven {
-        name = 'mikroskeem-repo'
-        url = 'https://repo.wut.ee/repository/mikroskeem-repo'
-    }
+    maven("https://repo.wut.ee/repository/mikroskeem-repo")
 }
 
 dependencies {
-    compile group: 'eu.mikroskeem', name: 'legacylauncher', version: legacylauncher_version
+    implementation("eu.mikroskeem:legacylauncher:$legacylauncherVersion")
 }
 ```
