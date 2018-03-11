@@ -108,8 +108,8 @@ public class LaunchClassLoader extends URLClassLoader {
         // classloader exclusions
         getClassLoaderExclusions().addAll(Arrays.asList(
                 "java.",
+                "jdk.",
                 "sun.",
-                "org.lwjgl.",
                 "org.apache.logging.",
                 "net.minecraft.launchwrapper."
         ));
@@ -117,10 +117,8 @@ public class LaunchClassLoader extends URLClassLoader {
         // transformer exclusions
         getTransformerExclusions().addAll(Arrays.asList(
                 "javax.",
-                "argo.",
-                "org.objectweb.asm.",
-                "com.google.common.",
-                "org.bouncycastle."
+                "jdk.",
+                "org.objectweb.asm."
         ));
 
         if(DEBUG_SAVE) {
