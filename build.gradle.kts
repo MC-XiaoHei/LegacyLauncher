@@ -1,4 +1,5 @@
 import groovy.util.Node
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 
 plugins {
     java
@@ -18,6 +19,7 @@ repositories {
     mavenCentral()
 
     maven("https://repo.wut.ee/repository/mikroskeem-repo")
+    maven("https://repo.spongepowered.org/maven")
 }
 
 dependencies {
@@ -25,6 +27,29 @@ dependencies {
     compile("org.ow2.asm:asm-all:$asmVersion")
     compile("org.apache.logging.log4j:log4j-api:$log4j2Version")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
+
+    testImplementation("org.spongepowered:lwts:1.1.0-SNAPSHOT") {
+        exclude(group = "net.minecraft", module = "launchwrapper")
+    }
+    testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
+}
+
+val test by tasks.getting(Test::class) {
+    systemProperty("lwts.tweaker", "eu.mikroskeem.test.launchwrapper.TestTweaker")
+    systemProperty("legacy.debugClassLoading", "true")
+    systemProperty("legacy.debugClassLoadingFiner", "true")
+
+    // Set working directory
+    workingDir = this.temporaryDir
+
+    // Show output
+    testLogging {
+        showStandardStreams = true
+        exceptionFormat = TestExceptionFormat.FULL
+    }
+
+    // Verbose
+    beforeTest(closureOf<Any> { logger.lifecycle("Running test: $this") })
 }
 
 license {
