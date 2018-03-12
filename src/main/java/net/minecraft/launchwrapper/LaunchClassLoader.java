@@ -121,6 +121,29 @@ public class LaunchClassLoader extends URLClassLoader {
                 "org.objectweb.asm."
         ));
 
+        // See: https://github.com/SpongePowered/SpongeCommon/commit/8f284427ca50d445d0fffab4afc8251388ada8e9
+        /*
+         * By default Launchwrapper inherits the class path from the system class loader.
+         * However, JRE extensions (e.g. Nashorn in the jre/lib/ext directory) are not part
+         * of the class path of the system class loader.
+         * Instead, they're loaded using a parent class loader (Launcher.ExtClassLoader).
+         * Currently, Launchwrapper does not fall back to the parent class loader if it's
+         * unable to find a class on its class path. To make the JRE extensions usable for
+         * plugins we manually add the URLs from the ExtClassLoader to Launchwrapper's
+         * class path.
+         */
+        ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+        if (classLoader == null) {
+            return;
+        }
+
+        classLoader = classLoader.getParent(); // Launcher.ExtClassLoader
+        if (classLoader instanceof URLClassLoader) {
+            for (URL url : ((URLClassLoader) classLoader).getURLs()) {
+                addURL(url);
+            }
+        }
+
         if(DEBUG_SAVE) {
             try {
                 if(Files.exists(DUMP_PATH))
