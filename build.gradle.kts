@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "eu.mikroskeem"
-version = "1.17-SNAPSHOT"
+version = "1.18-SNAPSHOT"
 description = "Minecraft LegacyLauncher - mikroskeem's fork"
 
 val joptSimpleVersion = "5.0.4"
