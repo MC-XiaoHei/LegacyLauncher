@@ -7,12 +7,16 @@ plugins {
     `maven-publish`
 }
 
-val joptSimpleVersion: String by extra
-val asmVersion: String by extra
-val log4j2Version: String by extra
-val jbAnnotationsVersion: String by extra
+group = "eu.mikroskeem"
+version = "1.17-SNAPSHOT"
+description = "Minecraft LegacyLauncher - mikroskeem's fork"
 
-val gradleWrapperVersion: String by extra
+val joptSimpleVersion = "5.0.4"
+val asmVersion = "5.2"
+val log4j2Version = "2.8.1"
+val jbAnnotationsVersion = "15.0"
+
+val gradleWrapperVersion = "4.6"
 
 repositories {
     mavenLocal()
