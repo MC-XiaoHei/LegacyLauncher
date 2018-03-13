@@ -133,14 +133,12 @@ public class LaunchClassLoader extends URLClassLoader {
          * class path.
          */
         ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-        if (classLoader == null) {
-            return;
-        }
-
-        classLoader = classLoader.getParent(); // Launcher.ExtClassLoader
-        if (classLoader instanceof URLClassLoader) {
-            for (URL url : ((URLClassLoader) classLoader).getURLs()) {
-                addURL(url);
+        if (classLoader != null) {
+            classLoader = classLoader.getParent(); // Launcher.ExtClassLoader
+            if (classLoader instanceof URLClassLoader) {
+                for (URL url : ((URLClassLoader) classLoader).getURLs()) {
+                    addURL(url);
+                }
             }
         }
 
