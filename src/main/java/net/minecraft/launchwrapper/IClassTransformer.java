@@ -37,6 +37,8 @@ public interface IClassTransformer {
     /**
      * Transforms class
      *
+     * Note that class names are using dots instead of slashes.
+     *
      * @param name             Class unmapped name
      * @param transformedName  Class mapped name, may equal to unmapped name
      * @param classData       Raw class data or null
