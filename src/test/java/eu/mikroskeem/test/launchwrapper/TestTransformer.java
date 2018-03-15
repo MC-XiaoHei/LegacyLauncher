@@ -29,6 +29,15 @@ package eu.mikroskeem.test.launchwrapper;
 import net.minecraft.launchwrapper.IClassTransformer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
+
+import java.util.List;
+
+import static eu.mikroskeem.shuriken.instrumentation.bytecode.ClassManipulation.findField;
+import static eu.mikroskeem.shuriken.instrumentation.bytecode.ClassManipulation.readClass;
 
 /**
  * @author Mark Vainomaa
@@ -39,9 +48,20 @@ public final class TestTransformer implements IClassTransformer {
     public byte[] transform(@NotNull String name, @NotNull String transformedName, @Nullable byte[] classData) {
         if(classData == null) return null;
 
-        System.out.println(name);
-        System.out.println(transformedName);
+        if(!name.equals("eu.mikroskeem.test.launchwrapper.targets.TransformableClass")) {
+            return classData;
+        }
 
-        return classData;
+        ClassWriter cw = new ClassWriter(0);
+        ClassNode cn = readClass(classData);
+
+        @SuppressWarnings("unchecked")
+        List<FieldNode> fields = (List<FieldNode>) cn.fields;
+
+        FieldNode field = findField(fields, Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "a", "Ljava/lang/String;");
+        field.access = Opcodes.ACC_PUBLIC;
+
+        cn.accept(cw);
+        return cw.toByteArray();
     }
 }

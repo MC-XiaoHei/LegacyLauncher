@@ -18,6 +18,9 @@ val jbAnnotationsVersion = "15.0"
 
 val gradleWrapperVersion = "4.6"
 
+val lwtsVersion = "1.1.0-SNAPSHOT"
+val shurikenVersion = "0.0.1-SNAPSHOT"
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -32,14 +35,15 @@ dependencies {
     compile("org.apache.logging.log4j:log4j-api:$log4j2Version")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
 
-    testImplementation("org.spongepowered:lwts:1.1.0-SNAPSHOT") {
+    testImplementation("org.spongepowered:lwts:$lwtsVersion") {
         exclude(group = "net.minecraft", module = "launchwrapper")
     }
+    testImplementation("eu.mikroskeem:shuriken.instrumentation:$shurikenVersion")
     testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
 }
 
 val test by tasks.getting(Test::class) {
-    systemProperty("lwts.tweaker", "eu.mikroskeem.test.launchwrapper.TestTweaker")
+    systemProperty("lwts.tweaker", "eu.mikroskeem.test.launchwrapper.tweaker.TestTweaker")
     systemProperty("legacy.debugClassLoading", "true")
     systemProperty("legacy.debugClassLoadingFiner", "true")
 

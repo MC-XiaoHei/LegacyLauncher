@@ -34,6 +34,8 @@ import org.spongepowered.lwts.runner.LaunchWrapperTestRunner;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 
 /**
  * @author Mark Vainomaa
@@ -44,16 +46,19 @@ public class LegacyLauncherTest {
     public void testScriptEngine() throws Exception {
         ScriptEngineManager sem = new ScriptEngineManager(Launch.classLoader);
         ScriptEngine nashorn = sem.getEngineByName("nashorn");
-        Assert.assertNotNull(nashorn); // TODO: figure out why this keeps failing. See issue #2
+        Assert.assertNotNull(nashorn);
 
         Object result = nashorn.eval("1 + 1");
         Assert.assertEquals(2, result);
     }
 
-    /*@Test
+    @Test
     public void testClassTransforming() throws Exception {
         String className = "eu.mikroskeem.test.launchwrapper.targets.TransformableClass";
 
         Class<?> clazz = Class.forName(className);
-    }*/
+        Field fieldA = clazz.getDeclaredField("a");
+        Assert.assertTrue(!Modifier.isFinal(fieldA.getModifiers()));
+        Assert.assertTrue(Modifier.isPublic(fieldA.getModifiers()));
+    }
 }

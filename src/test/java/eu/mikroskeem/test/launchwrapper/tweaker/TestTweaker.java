@@ -24,8 +24,9 @@
  * THE SOFTWARE.
  */
 
-package eu.mikroskeem.test.launchwrapper;
+package eu.mikroskeem.test.launchwrapper.tweaker;
 
+import eu.mikroskeem.test.launchwrapper.TestTransformer;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 import org.spongepowered.lwts.AbstractTestTweaker;
 
@@ -41,7 +42,15 @@ public final class TestTweaker extends AbstractTestTweaker {
         loader.getTransformerExclusions().add("org.spongepowered.lwts.");
         loader.getClassLoaderExclusions().add("org.spongepowered.lwts.");
 
+        // Load libraries from system classloader
+        loader.getClassLoaderExclusions().add("eu.mikroskeem.shuriken.");
+        loader.getClassLoaderExclusions().add("org.objectweb.asm.");
+
+        // Don't transform test class and transformer
+        loader.getTransformerExclusions().add("eu.mikroskeem.test.launchwrapper.LegacyLauncherTest");
+        loader.getTransformerExclusions().add("eu.mikroskeem.test.launchwrapper.TestTransformer");
+
         // Register transformers
-        //loader.registerTransformer(TestTransformer.class.getName()); // TODO
+        loader.registerTransformer(TestTransformer.class.getName());
     }
 }
