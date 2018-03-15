@@ -66,8 +66,6 @@ license {
     filter.exclude("net/minecraft/launchwrapper/Launch.java")
 }
 
-val jar by tasks.getting(Jar::class)
-
 val sourcesJar by tasks.creating(Jar::class) {
     classifier = "sources"
     from(java.sourceSets["main"].allSource)
@@ -91,7 +89,7 @@ publishing {
         "maven"(MavenPublication::class) {
             artifactId = "legacylauncher"
 
-            artifact(jar)
+            from(components["java"])
             artifact(sourcesJar)
             artifact(javadocJar)
 
