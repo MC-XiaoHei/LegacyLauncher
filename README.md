@@ -1,20 +1,16 @@
-# LegacyLauncher - mikroskeem's fork
+# LegacyLauncher - Akarin project
 
-This LegacyLauncher fork is used with [Orion](https://github.com/OrionMinecraft/Orion), introducing code cleanup,
-bugfixes and experimental Java 9 support, whereas retaining API-compatibility with other tools.
+This LegacyLauncher fork is based on [mikroskeem's fork for Orion](https://github.com/Akarin-project/LegacyLauncher), in order to boot the [Mixin](https://github.com/SpongePowered/Mixin)
 
 ## Buidling LegacyLauncher
 Invoke `./gradlew build`
 
 ## Getting LegacyLauncher
-```kotlin
-val legacyLauncherVersion: String by extra
-
-repositories {
-    maven("https://repo.wut.ee/repository/mikroskeem-repo")
-}
-
-dependencies {
-    implementation("eu.mikroskeem:legacylauncher:$legacylauncherVersion")
-}
+* The dependency are avilable at [Akarin-repo](https://github.com/Akarin-project/Akarin-repo) maven repository
+```
+<dependency>
+  <groupId>org.spongepowered</groupId>
+  <artifactId>mixin</artifactId>
+  <version>0.5.3-SNAPSHOT</version>
+</dependency>
 ```

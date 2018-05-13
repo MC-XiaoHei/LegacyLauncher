@@ -23,7 +23,7 @@ import java.util.Set;
 
 public class Launch {
     private static final Logger logger = LogManager.getLogger("LaunchWrapper");
-    private static final String DEFAULT_TWEAK = "net.minecraft.launchwrapper.DummyTweaker";
+    private static final String DEFAULT_TWEAK = "org.spongepowered.asm.launch.MixinTweaker";
     public static LaunchClassLoader classLoader;
     public static Map<String,Object> blackboard = new HashMap<>();
 

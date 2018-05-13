@@ -7,9 +7,9 @@ plugins {
     `maven-publish`
 }
 
-group = "eu.mikroskeem"
-version = "1.18"
-description = "Minecraft LegacyLauncher - mikroskeem's fork"
+group = "io.akarin"
+version = "1.19"
+description = "Minecraft LegacyLauncher - Akarin project"
 
 val joptSimpleVersion = "5.0.4"
 val asmVersion = "5.2"
@@ -101,11 +101,11 @@ publishing {
                 builder {
                     "name"("LegacyLauncher")
                     "description"(project.description)
-                    "url"("https://github.com/OrionMinecraft/LegacyLauncher")
+                    "url"("https://github.com/Akarin-project/LegacyLauncher")
 
                     "issueManagement" {
                         "system"("GitHub Issues")
-                        "url"("https://github.com/OrionMinecraft/LegacyLauncher/issues")
+                        "url"("https://github.com/Akarin-project/LegacyLauncher/issues")
                     }
 
                     "licenses" {
@@ -124,9 +124,9 @@ publishing {
                     }
 
                     "scm" {
-                        "connection"("scm:git@github.com:OrionMinecraft/LegacyLauncher.git")
-                        "developerConnection"("scm:git@github.com:OrionMinecraft/LegacyLauncher.git")
-                        "url"("https://github.com/OrionMinecraft/LegacyLauncher")
+                        "connection"("scm:git@github.com:Akarin-project/LegacyLauncher.git")
+                        "developerConnection"("scm:git@github.com:Akarin-project/LegacyLauncher.git")
+                        "url"("https://github.com/Akarin-project/LegacyLauncher")
                     }
                 }
             }
@@ -136,16 +136,9 @@ publishing {
     repositories {
         mavenLocal()
 
-        if(rootProject.hasProperty("wutRepoUsername") && rootProject.hasProperty("wutRepoPassword")) {
-            maven {
-                credentials {
-                    username = rootProject.properties["wutRepoUsername"] as String
-                    password = rootProject.properties["wutRepoPassword"] as String
-                }
-
-                name = "mikroskeem-repo"
-                setUrl("https://repo.wut.ee/repository/mikroskeem-repo")
-            }
+        maven {
+            name = "Akarin-repo"
+            setUrl("file:/" + rootProject.properties["repoParent"] + "Akarin-repo/repository/")
         }
     }
 }
