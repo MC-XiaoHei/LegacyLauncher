@@ -14,3 +14,5 @@ Invoke `./gradlew build`
   <version>1.19</version>
 </dependency>
 ```
+
+![Akarin project](https://i.loli.net/2018/05/13/5af7fbbfbcddf.png)
