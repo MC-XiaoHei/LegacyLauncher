@@ -9,8 +9,8 @@ Invoke `./gradlew build`
 * The dependency are avilable at [Akarin-repo](https://github.com/Akarin-project/Akarin-repo) maven repository
 ```
 <dependency>
-  <groupId>org.spongepowered</groupId>
-  <artifactId>mixin</artifactId>
-  <version>0.5.3-SNAPSHOT</version>
+  <groupId>io.akarin</groupId>
+  <artifactId>legacylaucher</artifactId>
+  <version>1.19</version>
 </dependency>
 ```
