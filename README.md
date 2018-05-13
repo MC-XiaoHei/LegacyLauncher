@@ -1,12 +1,12 @@
-# LegacyLauncher - Akarin project
+## LegacyLauncher - Akarin project
 
 This LegacyLauncher fork is based on [mikroskeem's fork for Orion](https://github.com/Akarin-project/LegacyLauncher), in order to boot the [Mixin](https://github.com/SpongePowered/Mixin)
 
-## Buidling LegacyLauncher
+### Build LegacyLauncher
 Invoke `./gradlew build`
 
-## Getting LegacyLauncher
-* The dependency are avilable at [Akarin-repo](https://github.com/Akarin-project/Akarin-repo) maven repository
+### Getting LegacyLauncher
+* The dependency is avilable at [Akarin-repo](https://github.com/Akarin-project/Akarin-repo) maven repository
 ```
 <dependency>
   <groupId>io.akarin</groupId>
