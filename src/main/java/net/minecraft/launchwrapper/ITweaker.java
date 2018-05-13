@@ -40,7 +40,6 @@ public interface ITweaker {
      *
      * @param args {@link List} of application's parameters
      */
-    @SuppressWarnings("deprecation")
     default void acceptOptions(@NotNull List<String> args) {
         acceptOptions(args, null, null, null);
     }

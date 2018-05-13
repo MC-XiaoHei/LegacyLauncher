@@ -81,13 +81,13 @@ public class Launch {
         blackboard.put("ArgumentList", argumentList);
 
         // This is to prevent duplicates - in case a tweaker decides to add itself or something
-        final Set<String> allTweakerNames = new HashSet<>();
+        final Set<String> visitedTweakerNames = new HashSet<>();
         // The 'definitive' list of tweakers
         final List<ITweaker> allTweakers = new ArrayList<>();
         try {
-            final List<ITweaker> tweakers = new ArrayList<>(tweakClassNames.size() + 1);
+            final List<ITweaker> pendingTweakers = new ArrayList<>(tweakClassNames.size() + 1);
             // The list of tweak instances - may be useful for interoperability
-            blackboard.put("Tweaks", tweakers);
+            blackboard.put("Tweaks", pendingTweakers);
             // The primary tweaker (the first one specified on the command line) will actually
             // be responsible for providing the 'main' name and generally gets called first
             ITweaker primaryTweaker = null;
@@ -99,13 +99,13 @@ public class Launch {
                 for (final Iterator<String> it = tweakClassNames.iterator(); it.hasNext(); ) {
                     final String tweakName = it.next();
                     // Safety check - don't reprocess something we've already visited
-                    if (allTweakerNames.contains(tweakName)) {
+                    if (visitedTweakerNames.contains(tweakName)) {
                         logger.log(Level.WARN, "Tweak class name {} has already been visited -- skipping", tweakName);
                         // remove the tweaker from the stack otherwise it will create an infinite loop
                         it.remove();
                         continue;
                     } else {
-                        allTweakerNames.add(tweakName);
+                        visitedTweakerNames.add(tweakName);
                     }
                     logger.info("Loading tweak class name {}", tweakName);
 
@@ -113,7 +113,7 @@ public class Launch {
                     classLoader.getClassLoaderExclusions().add(tweakName.substring(0, tweakName.lastIndexOf('.')));
                     final ITweaker tweaker = (ITweaker) Class.forName(tweakName, true, classLoader)
                             .getConstructor().newInstance();
-                    tweakers.add(tweaker);
+                    pendingTweakers.add(tweaker);
 
                     // Remove the tweaker from the list of tweaker names we've processed this pass
                     it.remove();
@@ -125,8 +125,8 @@ public class Launch {
                 }
 
                 // Now, iterate all the tweakers we just instantiated
-                while(!tweakers.isEmpty()) {
-                    final ITweaker tweaker = tweakers.remove(0);
+                while(!pendingTweakers.isEmpty()) {
+                    final ITweaker tweaker = pendingTweakers.remove(0);
                     logger.info("Calling tweak class {}", tweaker.getClass().getName());
                     tweaker.acceptOptions(options.valuesOf(nonOption));
                     tweaker.injectIntoClassLoader(classLoader);
