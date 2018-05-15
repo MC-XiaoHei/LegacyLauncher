@@ -6,6 +6,7 @@ import joptsimple.OptionSpec;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.MixinEnvironment.Side;
 
@@ -42,6 +43,11 @@ public class Launch {
             classLoader = new LaunchClassLoader(getURLs());
         }
         Thread.currentThread().setContextClassLoader(classLoader);
+        configureMixin();
+    }
+    
+    private void configureMixin() {
+        MixinBootstrap.init();
         MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
     }
 
