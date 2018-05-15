@@ -8,6 +8,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.spongepowered.asm.launch.MixinBootstrap;
 import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.MixinEnvironment.Side;
 
 import java.io.File;
@@ -47,6 +48,7 @@ public class Launch {
     
     private void configureMixin() {
         MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
+        Mixins.addConfiguration("mixins.akarin.core.json");
     }
 
     private URL[] getURLs() {
