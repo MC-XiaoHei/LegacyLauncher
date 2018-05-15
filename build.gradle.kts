@@ -36,7 +36,7 @@ dependencies {
     compile("org.ow2.asm:asm-all:$asmVersion")
     compile("org.apache.logging.log4j:log4j-api:$log4j2Version")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
-    compile("org.spongepowered.mixin:$mixinVersion")
+    compile("org.spongepowered:mixin:$mixinVersion")
 
     testImplementation("org.spongepowered:lwts:$lwtsVersion") {
         exclude(group = "net.minecraft", module = "launchwrapper")
