@@ -6,6 +6,9 @@ import joptsimple.OptionSpec;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.spongepowered.asm.mixin.MixinEnvironment;
+import org.spongepowered.asm.mixin.MixinEnvironment.Side;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -39,6 +42,7 @@ public class Launch {
             classLoader = new LaunchClassLoader(getURLs());
         }
         Thread.currentThread().setContextClassLoader(classLoader);
+        MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
     }
 
     private URL[] getURLs() {

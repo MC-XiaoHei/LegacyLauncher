@@ -21,6 +21,8 @@ val gradleWrapperVersion = "4.6"
 val lwtsVersion = "1.1.0-SNAPSHOT"
 val shurikenVersion = "0.0.1-SNAPSHOT"
 
+val mixinVersion = "0.7.8-SNAPSHOT"
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -34,6 +36,7 @@ dependencies {
     compile("org.ow2.asm:asm-all:$asmVersion")
     compile("org.apache.logging.log4j:log4j-api:$log4j2Version")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
+    compile("org.spongepowered.mixin:$mixinVersion")
 
     testImplementation("org.spongepowered:lwts:$lwtsVersion") {
         exclude(group = "net.minecraft", module = "launchwrapper")
