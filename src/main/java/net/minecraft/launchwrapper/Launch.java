@@ -43,11 +43,9 @@ public class Launch {
             classLoader = new LaunchClassLoader(getURLs());
         }
         Thread.currentThread().setContextClassLoader(classLoader);
-        configureMixin();
     }
     
     private void configureMixin() {
-        MixinBootstrap.init();
         MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
     }
 
@@ -134,6 +132,9 @@ public class Launch {
                     }
                 }
 
+                // Configure environment to avoid warn
+                configureMixin();
+                
                 // Now, iterate all the tweakers we just instantiated
                 while(!pendingTweakers.isEmpty()) {
                     final ITweaker tweaker = pendingTweakers.remove(0);
