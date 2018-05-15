@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -145,6 +146,8 @@ public class Launch {
             final Method mainMethod = clazz.getMethod("main", String[].class);
 
             logger.info("Launching wrapped Minecraft {{}}", launchTarget);
+            // Pass original server arguments
+            argumentList.addAll(Arrays.asList(args));
             mainMethod.invoke(null, (Object) argumentList.toArray(new String[argumentList.size()]));
         } catch (Exception e) {
             logger.error("Unable to launch", e);
