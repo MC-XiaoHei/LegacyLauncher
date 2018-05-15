@@ -65,7 +65,6 @@ import java.util.jar.Manifest;
 
 import static java.util.Objects.requireNonNull;
 
-
 public class LaunchClassLoader extends URLClassLoader {
     private static final Logger logger = LogManager.getLogger("LaunchWrapper");
 

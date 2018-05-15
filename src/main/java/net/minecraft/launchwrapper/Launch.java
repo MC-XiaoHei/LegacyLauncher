@@ -6,7 +6,6 @@ import joptsimple.OptionSpec;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -141,9 +140,7 @@ public class Launch {
                 argumentList.addAll(Arrays.asList(tweaker.getLaunchArguments()));
             }
 
-            // Finally we turn to the primary tweaker, and let it tell us where to go to launch
-            assert primaryTweaker != null;
-            final String launchTarget = primaryTweaker.getLaunchTarget();
+            final String launchTarget = "org.bukkit.craftbukkit.Main";
             final Class<?> clazz = Class.forName(launchTarget, false, classLoader);
             final Method mainMethod = clazz.getMethod("main", String[].class);
 
