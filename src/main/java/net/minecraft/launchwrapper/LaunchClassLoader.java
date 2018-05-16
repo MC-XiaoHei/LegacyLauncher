@@ -109,7 +109,6 @@ public class LaunchClassLoader extends URLClassLoader {
                 "java.",
                 "jdk.",
                 "sun.",
-                "org.apache.logging.",
                 "net.minecraft.launchwrapper."
         ));
 
