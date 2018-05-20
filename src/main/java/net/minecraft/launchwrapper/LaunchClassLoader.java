@@ -109,7 +109,11 @@ public class LaunchClassLoader extends URLClassLoader {
                 "java.",
                 "jdk.",
                 "sun.",
-                "net.minecraft.launchwrapper."
+                "org.jline.",
+                "org.spongepowered.",
+                "org.apache.logging.",
+                "net.minecraft.launchwrapper.",
+                "net.minecrell.terminalconsole."
         ));
 
         // transformer exclusions

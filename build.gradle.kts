@@ -34,7 +34,7 @@ repositories {
 dependencies {
     compile("net.sf.jopt-simple:jopt-simple:$joptSimpleVersion")
     compile("org.ow2.asm:asm-all:$asmVersion")
-    compile("org.apache.logging.log4j:log4j-api:$log4j2Version")
+    compile("org.apache.logging.log4j:log4j-core:$log4j2Version")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
     compile("org.spongepowered:mixin:$mixinVersion")
 
