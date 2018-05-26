@@ -110,6 +110,7 @@ public class LaunchClassLoader extends URLClassLoader {
                 "jdk.",
                 "sun.",
                 "org.jline.",
+
                 "org.spongepowered.",
                 "org.apache.logging.",
                 "net.minecraft.launchwrapper.",
@@ -245,7 +246,7 @@ public class LaunchClassLoader extends URLClassLoader {
         CodeSigner[] signers = null;
 
         try {
-            if (lastDot > -1 && !untransformedName.startsWith("net.minecraft.")) {
+            if (lastDot > -1) {
                 if (urlConnection instanceof JarURLConnection) {
                     final JarURLConnection jarURLConnection = (JarURLConnection) urlConnection;
                     final JarFile jarFile = jarURLConnection.getJarFile();
