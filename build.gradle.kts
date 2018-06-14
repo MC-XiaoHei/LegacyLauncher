@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.akarin"
-version = "1.22"
+version = "1.23"
 description = "Minecraft LegacyLauncher - Akarin project"
 
 val joptSimpleVersion = "5.0.4"

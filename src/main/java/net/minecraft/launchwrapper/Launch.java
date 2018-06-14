@@ -49,6 +49,8 @@ public class Launch {
     private void configureMixin() {
         MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
         Mixins.addConfiguration("mixins.akarin.core.json");
+        
+        AkarinMixinConfig.init(new File("akarin.yml"));
         if (AkarinMixinConfig.enableAsyncLighting) Mixins.addConfiguration("mixins.akarin.optimization.lighting.json");
         if (AkarinMixinConfig.enablePandaWire) Mixins.addConfiguration("mixins.akarin.optimization.pandawire.json");
         if (AkarinMixinConfig.enableRealTimeTicking) Mixins.addConfiguration("mixins.akarin.optimization.realtime.json");
