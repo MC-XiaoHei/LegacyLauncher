@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "io.akarin"
-version = "1.21"
+version = "1.22"
 description = "Minecraft LegacyLauncher - Akarin project"
 
 val joptSimpleVersion = "5.0.4"
@@ -22,6 +22,7 @@ val lwtsVersion = "1.1.0-SNAPSHOT"
 val shurikenVersion = "0.0.1-SNAPSHOT"
 
 val mixinVersion = "0.7.8-SNAPSHOT"
+val paperApiVersion = "1.12.2-R0.1-SNAPSHOT"
 
 repositories {
     mavenLocal()
@@ -37,6 +38,7 @@ dependencies {
     compile("org.apache.logging.log4j:log4j-core:$log4j2Version")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
     compile("org.spongepowered:mixin:$mixinVersion")
+	compile("com.destroystokyo.paper:paper-api:$paperApiVersion")
 
     testImplementation("org.spongepowered:lwts:$lwtsVersion") {
         exclude(group = "net.minecraft", module = "launchwrapper")

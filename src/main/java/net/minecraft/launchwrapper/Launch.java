@@ -10,6 +10,8 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.MixinEnvironment.Side;
 
+import io.akarin.launcher.AkarinMixinConfig;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -47,6 +49,9 @@ public class Launch {
     private void configureMixin() {
         MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
         Mixins.addConfiguration("mixins.akarin.core.json");
+        if (AkarinMixinConfig.enableAsyncLighting) Mixins.addConfiguration("mixins.akarin.optimization.lighting.json");
+        if (AkarinMixinConfig.enablePandaWire) Mixins.addConfiguration("mixins.akarin.optimization.pandawire.json");
+        if (AkarinMixinConfig.enableRealTimeTicking) Mixins.addConfiguration("mixins.akarin.optimization.realtime.json");
     }
 
     private URL[] getURLs() {
