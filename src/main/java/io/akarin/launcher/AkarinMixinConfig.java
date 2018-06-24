@@ -159,6 +159,6 @@ public class AkarinMixinConfig {
     
     public static boolean enableRealTimeTicking;
     private static void enableRealTimeTicking() {
-        enableRealTimeTicking = getBoolean("core.enable-real-time-ticking", false);
+        enableRealTimeTicking = getBoolean("core.enable-real-time-ticking", true);
     }
 }
