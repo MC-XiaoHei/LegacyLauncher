@@ -54,6 +54,7 @@ public class Launch {
         if (AkarinMixinConfig.enableAsyncLighting) Mixins.addConfiguration("mixins.akarin.optimization.lighting.json");
         if (AkarinMixinConfig.enablePandaWire) Mixins.addConfiguration("mixins.akarin.optimization.pandawire.json");
         if (AkarinMixinConfig.enableRealTimeTicking) Mixins.addConfiguration("mixins.akarin.optimization.realtime.json");
+        if (AkarinMixinConfig.removeChunkUnloadQueue) Mixins.addConfiguration("mixins.akarin.optimization.chunk.json");
     }
 
     private URL[] getURLs() {

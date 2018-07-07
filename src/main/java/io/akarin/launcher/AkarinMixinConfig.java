@@ -154,11 +154,16 @@ public class AkarinMixinConfig {
     
     public static boolean enablePandaWire;
     private static void enablePandaWire() {
-        enablePandaWire = getBoolean("core.enable-panda-redstone-wire", true);
+        enablePandaWire = getBoolean("core.enable-panda-redstone-wire", false);
     }
     
     public static boolean enableRealTimeTicking;
     private static void enableRealTimeTicking() {
         enableRealTimeTicking = getBoolean("core.enable-real-time-ticking", true);
+    }
+    
+    public static boolean removeChunkUnloadQueue;
+    private static void removeChunkUnloadQueue() {
+        removeChunkUnloadQueue = getBoolean("core.optimize-chunk-unloading", false);
     }
 }
