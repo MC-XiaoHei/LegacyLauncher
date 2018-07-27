@@ -149,7 +149,7 @@ public class AkarinMixinConfig {
     /*========================================================================*/
     public static boolean enableAsyncLighting;
     private static void enableAsyncLighting() {
-        enableAsyncLighting = getBoolean("core.async-lighting.enable", true);
+        enableAsyncLighting = getBoolean("core.async-lighting.enable", false);
     }
     
     public static boolean enablePandaWire;
