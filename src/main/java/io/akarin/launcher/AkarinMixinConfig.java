@@ -147,11 +147,6 @@ public class AkarinMixinConfig {
         return config.getString(path, config.getString(path));
     }
     /*========================================================================*/
-    public static boolean enableAsyncLighting;
-    private static void enableAsyncLighting() {
-        enableAsyncLighting = getBoolean("core.async-lighting.enable", false);
-    }
-    
     public static boolean enablePandaWire;
     private static void enablePandaWire() {
         enablePandaWire = getBoolean("core.enable-panda-redstone-wire", false);
