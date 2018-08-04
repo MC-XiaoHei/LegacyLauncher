@@ -51,8 +51,6 @@ public class Launch {
         Mixins.addConfiguration("mixins.akarin.core.json");
         
         AkarinMixinConfig.init(new File("akarin.yml"));
-        if (AkarinMixinConfig.enablePandaWire) Mixins.addConfiguration("mixins.akarin.optimization.pandawire.json");
-        if (AkarinMixinConfig.enableRealTimeTicking) Mixins.addConfiguration("mixins.akarin.optimization.realtime.json");
         if (AkarinMixinConfig.removeChunkUnloadQueue) Mixins.addConfiguration("mixins.akarin.optimization.chunk.json");
     }
 
