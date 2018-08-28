@@ -51,7 +51,6 @@ public class Launch {
         Mixins.addConfiguration("mixins.akarin.core.json");
         
         AkarinMixinConfig.init(new File("akarin.yml"));
-        if (AkarinMixinConfig.removeChunkUnloadQueue) Mixins.addConfiguration("mixins.akarin.optimization.chunk.json");
     }
 
     private URL[] getURLs() {

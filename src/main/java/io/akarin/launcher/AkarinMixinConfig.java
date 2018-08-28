@@ -147,8 +147,4 @@ public class AkarinMixinConfig {
         return config.getString(path, config.getString(path));
     }
     /*========================================================================*/
-    public static boolean removeChunkUnloadQueue;
-    private static void removeChunkUnloadQueue() {
-        removeChunkUnloadQueue = getBoolean("core.optimize-chunk-unloading", false);
-    }
 }
