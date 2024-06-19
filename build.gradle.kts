@@ -25,11 +25,12 @@ val mixinVersion = "0.8.7-SNAPSHOT"
 val paperApiVersion = "1.20.4-R0.1-SNAPSHOT"
 
 repositories {
-    maven("https://repo.papermc.io/repository/maven-releases/")
-    maven("https://repo.papermc.io/repository/maven-snapshots/")
-    maven("https://repo.spongepowered.org/repository/maven-public/")
     mavenCentral()
-    mavenLocal()
+    maven("https://repo.papermc.io/repository/maven-releases/")
+
+    maven("https://repo.spongepowered.org/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-snapshots/")
+    // mavenLocal()
 }
 
 dependencies {
