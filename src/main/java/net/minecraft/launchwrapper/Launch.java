@@ -3,9 +3,8 @@ package net.minecraft.launchwrapper;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.MixinEnvironment.Side;
@@ -27,8 +26,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class Launch {
-    private static final Logger logger = LogManager.getLogger("LaunchWrapper");
-    private static final String DEFAULT_TWEAK = "org.spongepowered.asm.launch.MixinTweaker";
+    private static final Logger logger = LoggerFactory.getLogger("LaunchWrapper");    private static final String DEFAULT_TWEAK = "org.spongepowered.asm.launch.MixinTweaker";
     public static LaunchClassLoader classLoader;
     public static Map<String,Object> blackboard = new HashMap<>();
 
@@ -112,7 +110,7 @@ public class Launch {
                     final String tweakName = it.next();
                     // Safety check - don't reprocess something we've already visited
                     if (visitedTweakerNames.contains(tweakName)) {
-                        logger.log(Level.WARN, "Tweak class name {} has already been visited -- skipping", tweakName);
+                        logger.warn("Tweak class name {} has already been visited -- skipping", tweakName);
                         // remove the tweaker from the stack otherwise it will create an infinite loop
                         it.remove();
                         continue;

@@ -13,44 +13,46 @@ description = "Minecraft LegacyLauncher - Akarin project"
 
 val joptSimpleVersion = "5.0.4"
 val asmVersion = "5.2"
-val log4j2Version = "2.8.1"
-val jbAnnotationsVersion = "15.0"
+val slf4jVersion = "1.8.0-beta2"
+val jbAnnotationsVersion = "24.1.0"
 
 val gradleWrapperVersion = "4.6"
 
 val lwtsVersion = "1.1.0-SNAPSHOT"
 val shurikenVersion = "0.0.1-SNAPSHOT"
 
-val mixinVersion = "0.7.8-SNAPSHOT"
-val paperApiVersion = "1.12.2-R0.1-SNAPSHOT"
+val mixinVersion = "0.8.7-SNAPSHOT"
+val paperApiVersion = "1.20.4-R0.1-SNAPSHOT"
 
 repositories {
-    mavenLocal()
+    maven("https://repo.papermc.io/repository/maven-releases/")
+    maven("https://repo.papermc.io/repository/maven-snapshots/")
+    // maven("https://repo.wut.ee/repository/mikroskeem-repo") // DEAD
+    maven("https://repo.spongepowered.org/repository/maven-public/")
     mavenCentral()
-
-    maven("https://repo.wut.ee/repository/mikroskeem-repo")
-    maven("https://repo.spongepowered.org/maven")
+    mavenLocal()
 }
 
 dependencies {
     compile("net.sf.jopt-simple:jopt-simple:$joptSimpleVersion")
-    compile("org.ow2.asm:asm-all:$asmVersion")
-    compile("org.apache.logging.log4j:log4j-core:$log4j2Version")
+    compile("org.ow2.asm:asm:$asmVersion")
+    compile("org.slf4j:slf4j-api:$slf4jVersion")
     compile("org.jetbrains:annotations:$jbAnnotationsVersion")
     compile("org.spongepowered:mixin:$mixinVersion")
-	compile("com.destroystokyo.paper:paper-api:$paperApiVersion")
+	compile("io.papermc.paper:paper-api:$paperApiVersion")
 
     testImplementation("org.spongepowered:lwts:$lwtsVersion") {
         exclude(group = "net.minecraft", module = "launchwrapper")
     }
-    testImplementation("eu.mikroskeem:shuriken.instrumentation:$shurikenVersion")
-    testImplementation("org.apache.logging.log4j:log4j-core:$log4j2Version")
+    // testImplementation("eu.mikroskeem:shuriken.instrumentation:$shurikenVersion") // DEAD
+    // testImplementation("org.slf4j:slf4j-api:$slf4jVersion")
 }
 
 val test by tasks.getting(Test::class) {
     systemProperty("lwts.tweaker", "eu.mikroskeem.test.launchwrapper.tweaker.TestTweaker")
     systemProperty("legacy.debugClassLoading", "true")
     systemProperty("legacy.debugClassLoadingFiner", "true")
+    systemProperty("org.slf4j.simpleLogger.defaultLogLevel", "trace")
 
     // Set working directory
     workingDir = this.temporaryDir
