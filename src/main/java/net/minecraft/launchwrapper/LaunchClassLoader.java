@@ -69,26 +69,27 @@ public class LaunchClassLoader extends URLClassLoader {
 
     static {
         /* Use this, if you encounter weird issues */
-        if(!Boolean.getBoolean("legacy.dontRegisterLCLAsParallelCapable")) {
+        if (!Boolean.getBoolean("legacy.dontRegisterLCLAsParallelCapable")) {
             logger.debug("Registering LaunchClassLoader as parallel capable");
             ClassLoader.registerAsParallelCapable();
         }
     }
 
     public static final int BUFFER_SIZE = 1 << 12;
-    private List<URL> sources;
-    private ClassLoader parent = getClass().getClassLoader();
+    private final List<URL> sources;
+    private final ClassLoader parent = getClass().getClassLoader();
 
-    private List<IClassTransformer> transformers = new ArrayList<>(2);
-    private Map<String, Class<?>> cachedClasses = new ConcurrentHashMap<>();
-    private Set<String> invalidClasses = new HashSet<>(1000);
+    private final List<IClassTransformer> transformers = new ArrayList<>(2);
+    private final Map<String, Class<?>> cachedClasses = new ConcurrentHashMap<>();
+    private final Set<String> invalidClasses = new HashSet<>(1000);
 
-    private Set<String> classLoaderExceptions = new HashSet<>();
-    private Set<String> transformerExceptions = new HashSet<>();
-    private Map<String,byte[]> resourceCache = new ConcurrentHashMap<>(1000);
-    private Set<String> negativeResourceCache = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+    private final Set<String> classLoaderExceptions = new HashSet<>();
+    private final Set<String> transformerExceptions = new HashSet<>();
+    private final Map<String, byte[]> resourceCache = new ConcurrentHashMap<>(1000);
+    private final Set<String> negativeResourceCache = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
-    @Nullable private IClassNameTransformer renameTransformer = null;
+    @Nullable
+    private IClassNameTransformer renameTransformer = null;
 
     private final ThreadLocal<byte[]> loadBuffer = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
@@ -145,12 +146,13 @@ public class LaunchClassLoader extends URLClassLoader {
             }
         }
 
-        if(DEBUG_SAVE) {
+        if (DEBUG_SAVE) {
             try {
-                if(Files.exists(DUMP_PATH))
+                if (Files.exists(DUMP_PATH)) {
                     Files.walk(DUMP_PATH).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+                }
                 Files.createDirectories(DUMP_PATH);
-                logger.info("DEBUG_SAVE Enabled, saving all classes to \"{}\"", DUMP_PATH.toString());
+                logger.info("DEBUG_SAVE Enabled, saving all classes to \"{}\"", DUMP_PATH);
             } catch (IOException e) {
                 logger.warn("Failed to set up DEBUG_SAVE", e);
             }
@@ -164,7 +166,9 @@ public class LaunchClassLoader extends URLClassLoader {
      */
     public void registerTransformer(@NotNull String transformerClassName) {
         try {
-            IClassTransformer transformer = (IClassTransformer) loadClass(transformerClassName).newInstance();
+            IClassTransformer transformer = (IClassTransformer) loadClass(transformerClassName)
+                    .getDeclaredConstructor()
+                    .newInstance();
             transformers.add(transformer);
             if (transformer instanceof IClassNameTransformer && renameTransformer == null)
                 renameTransformer = (IClassNameTransformer) transformer;
@@ -178,20 +182,20 @@ public class LaunchClassLoader extends URLClassLoader {
      */
     @Override
     public Class<?> findClass(final String name) throws ClassNotFoundException {
-        if(invalidClasses.contains(name)) {
+        if (invalidClasses.contains(name)) {
             throw new ClassNotFoundException(name);
         }
 
-        for(final String exception : classLoaderExceptions) {
-            if(name.startsWith(exception))
+        for (final String exception : classLoaderExceptions) {
+            if (name.startsWith(exception))
                 return parent.loadClass(name);
         }
 
-        if(cachedClasses.containsKey(name))
+        if (cachedClasses.containsKey(name))
             return cachedClasses.get(name);
 
-        for(final String exception : transformerExceptions) {
-            if(name.startsWith(exception)) {
+        for (final String exception : transformerExceptions) {
+            if (name.startsWith(exception)) {
                 try {
                     final Class<?> clazz = super.findClass(name);
                     cachedClasses.put(name, clazz);
@@ -204,7 +208,7 @@ public class LaunchClassLoader extends URLClassLoader {
         }
 
         final String transformedName = transformName(name);
-        if(cachedClasses.containsKey(transformedName)) {
+        if (cachedClasses.containsKey(transformedName)) {
             return cachedClasses.get(transformedName);
         }
 
@@ -218,23 +222,22 @@ public class LaunchClassLoader extends URLClassLoader {
             // Run transformers (running with null class bytes is valid, because transformers may generate classes dynamically)
             transformedClass = runTransformers(untransformedName, transformedName, classData);
         } catch (Exception e) {
-            if(DEBUG)
-                logger.trace( "Exception encountered while transformimg class {}", name, e);
+            if (DEBUG)
+                logger.trace("Exception encountered while transformimg class {}", name, e);
         }
 
         // If transformer chain provides no class data, mark given class name invalid and throw CNFE
-        if(transformedClass == null) {
+        if (transformedClass == null) {
             invalidClasses.add(name);
             throw new ClassNotFoundException(name);
         }
 
         // Save class if requested so
-        if(DEBUG_SAVE) {
+        if (DEBUG_SAVE) {
             try {
                 saveTransformedClass(transformedClass, transformedName);
-            } catch(IOException e){
+            } catch (IOException e) {
                 logger.warn("Failed to save class {}", transformedName, e);
-                e.printStackTrace();
             }
         }
 
@@ -247,15 +250,14 @@ public class LaunchClassLoader extends URLClassLoader {
 
         try {
             if (lastDot > -1) {
-                if (urlConnection instanceof JarURLConnection) {
-                    final JarURLConnection jarURLConnection = (JarURLConnection) urlConnection;
+                if (urlConnection instanceof JarURLConnection jarURLConnection) {
                     final JarFile jarFile = jarURLConnection.getJarFile();
 
                     if (jarFile != null && jarFile.getManifest() != null) {
                         final Manifest manifest = jarFile.getManifest();
                         final JarEntry entry = jarFile.getJarEntry(fileName);
 
-                        Package pkg = getPackage(packageName);
+                        Package pkg = getDefinedPackage(packageName);
                         getClassBytes(untransformedName);
                         signers = entry.getCodeSigners();
                         if (pkg == null) {
@@ -269,7 +271,7 @@ public class LaunchClassLoader extends URLClassLoader {
                         }
                     }
                 } else {
-                    Package pkg = getPackage(packageName);
+                    Package pkg = getDefinedPackage(packageName);
                     if (pkg == null) {
                         pkg = definePackage(packageName, null, null, null, null, null, null, null);
                     } else if (pkg.isSealed()) {
@@ -307,6 +309,7 @@ public class LaunchClassLoader extends URLClassLoader {
      *
      * @return Unmodifiable list of added {@link URL}s
      */
+    @SuppressWarnings("unused")
     @NotNull
     public List<URL> getSources() {
         return Collections.unmodifiableList(sources);
@@ -317,6 +320,7 @@ public class LaunchClassLoader extends URLClassLoader {
      *
      * @return List of registered {@link IClassTransformer} instances
      */
+    @SuppressWarnings("unused")
     @NotNull
     public List<IClassTransformer> getTransformers() {
         return Collections.unmodifiableList(transformers);
@@ -336,7 +340,7 @@ public class LaunchClassLoader extends URLClassLoader {
 
     /**
      * Gets a {@link Set} of classloader exclusions.
-     *
+     * <p>
      * Classlaoder exclusions look like this: {@code com.mojang.authlib.}, so that means all classes and subclasses
      * in {@code com.mojang.authlib} class would be loaded from parent classloader
      *
@@ -360,7 +364,7 @@ public class LaunchClassLoader extends URLClassLoader {
 
     /**
      * Gets a {@link Set} of transformer exclusions.
-     *
+     * <p>
      * Transformer exclusions look like this: {@code com.mojang.authlib.}, so that means all classes and subclasses
      * in {@code com.mojang.authlib} class won't be transformed
      *
@@ -370,14 +374,14 @@ public class LaunchClassLoader extends URLClassLoader {
         return transformerExceptions;
     }
 
-    /**`
+    /**
+     * `
      * Gets class raw bytes
      *
      * @param name Class name
      * @return Class raw bytes, or null if class was not found
      */
-    @Nullable
-    public byte[] getClassBytes(@NotNull String name) {
+    public byte @Nullable [] getClassBytes(@NotNull String name) {
         if (negativeResourceCache.contains(name)) {
             return null;
         } else if (resourceCache.containsKey(name)) {
@@ -402,13 +406,13 @@ public class LaunchClassLoader extends URLClassLoader {
             negativeResourceCache.add(name);
             return null;
         }
-        try(InputStream classStream = classResource.openStream()) {
-            if (DEBUG) logger.trace("Loading class {} from resource {}", name, classResource.toString());
+        try (InputStream classStream = classResource.openStream()) {
+            if (DEBUG) logger.trace("Loading class {} from resource {}", name, classResource);
             byte[] data = requireNonNull(readFully(classStream));
             resourceCache.put(name, data);
             return data;
         } catch (Exception e) {
-            if(DEBUG) logger.trace("Failed to load class {} from resource {}", name, classResource.toString());
+            if (DEBUG) logger.trace("Failed to load class {} from resource {}", name, classResource);
             negativeResourceCache.add(name);
             return null;
         }
@@ -419,13 +423,13 @@ public class LaunchClassLoader extends URLClassLoader {
      *
      * @param entriesToClear Entries to clear
      */
+    @SuppressWarnings("unused")
     public void clearNegativeEntries(@NotNull Set<String> entriesToClear) {
         negativeResourceCache.removeAll(entriesToClear);
     }
 
-    @Nullable
-    private byte[] readFully(@NotNull InputStream stream) {
-        try(ByteArrayOutputStream os = new ByteArrayOutputStream(stream.available())) {
+    private byte @Nullable [] readFully(@NotNull InputStream stream) {
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream(stream.available())) {
             int readBytes;
             byte[] buffer = loadBuffer.get();
 
@@ -439,19 +443,19 @@ public class LaunchClassLoader extends URLClassLoader {
         }
     }
 
-    private void saveTransformedClass(@NotNull byte[] data, @NotNull String transformedName) throws IOException {
+    private void saveTransformedClass(byte @NotNull [] data, @NotNull String transformedName) throws IOException {
         Path classFile = Paths.get(DUMP_PATH.toString(), transformedName.replace('.', File.separatorChar) + ".class");
 
-        if(Files.notExists(classFile.getParent()))
+        if (Files.notExists(classFile.getParent()))
             Files.createDirectories(classFile);
 
-        if(Files.exists(classFile)) {
+        if (Files.exists(classFile)) {
             logger.warn("Transformed class \"{}\" already exists! Deleting old class", transformedName);
             Files.delete(classFile);
         }
 
-        try(OutputStream output = Files.newOutputStream(classFile, StandardOpenOption.CREATE_NEW)) {
-            logger.debug("Saving transformed class \"{}\" to \"{}\"", transformedName, classFile.toString());
+        try (OutputStream output = Files.newOutputStream(classFile, StandardOpenOption.CREATE_NEW)) {
+            logger.debug("Saving transformed class \"{}\" to \"{}\"", transformedName, classFile);
             output.write(data);
         } catch (IOException ex) {
             logger.warn("Could not save transformed class \"{}\"", transformedName, ex);
@@ -472,7 +476,7 @@ public class LaunchClassLoader extends URLClassLoader {
         Attributes attributes = manifest.getAttributes(path);
         String sealed = attributes != null ? attributes.getValue(Name.SEALED) : null;
 
-        if(sealed == null)
+        if (sealed == null)
             sealed = (attributes = manifest.getMainAttributes()) != null ? attributes.getValue(Name.SEALED) : null;
         return "true".equalsIgnoreCase(sealed);
     }
@@ -491,20 +495,19 @@ public class LaunchClassLoader extends URLClassLoader {
         return null;
     }
 
-    @Nullable
-    private byte[] runTransformers(@NotNull String name, @NotNull String transformedName, @Nullable byte[] basicClass) {
-        if(DEBUG_FINER)
+    private byte @Nullable [] runTransformers(@NotNull String name, @NotNull String transformedName, byte @Nullable [] basicClass) {
+        if (DEBUG_FINER)
             logger.trace("Beginning transform of {{} ({})} Start Length: {}", name, transformedName, basicClass != null ? basicClass.length : 0);
 
         for (final IClassTransformer transformer : transformers) {
             final String transName = transformer.getClass().getName();
 
-            if(DEBUG_FINER)
+            if (DEBUG_FINER)
                 logger.trace("Before Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass != null ? basicClass.length : 0);
 
             basicClass = transformer.transform(name, transformedName, basicClass);
 
-            if(DEBUG_FINER)
+            if (DEBUG_FINER)
                 logger.trace("After  Transformer {{} ({})} {}: {}", name, transformedName, transName, basicClass != null ? basicClass.length : 0);
         }
         return basicClass;

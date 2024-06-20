@@ -9,8 +9,6 @@ import org.spongepowered.asm.mixin.MixinEnvironment;
 import org.spongepowered.asm.mixin.Mixins;
 import org.spongepowered.asm.mixin.MixinEnvironment.Side;
 
-import io.akarin.launcher.AkarinMixinConfig;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -35,8 +33,7 @@ public class Launch {
     }
 
     private Launch() {
-        if (getClass().getClassLoader() instanceof URLClassLoader) {
-            final URLClassLoader ucl = (URLClassLoader) getClass().getClassLoader();
+        if (getClass().getClassLoader() instanceof URLClassLoader ucl) {
             classLoader = new LaunchClassLoader(ucl.getURLs());
         } else {
             classLoader = new LaunchClassLoader(getURLs());
@@ -47,8 +44,6 @@ public class Launch {
     private void configureMixin() {
         MixinEnvironment.getDefaultEnvironment().setSide(Side.SERVER);
         Mixins.addConfiguration("mixins.akarin.core.json");
-        
-        AkarinMixinConfig.init(new File("akarin.yml"));
     }
 
     private URL[] getURLs() {
@@ -161,7 +156,7 @@ public class Launch {
             logger.info("Launching wrapped Minecraft {{}}", launchTarget);
             // Pass original server arguments
             argumentList.addAll(Arrays.asList(args));
-            mainMethod.invoke(null, (Object) argumentList.toArray(new String[argumentList.size()]));
+            mainMethod.invoke(null, (Object) argumentList.toArray(new String[0]));
         } catch (Exception e) {
             logger.error("Unable to launch", e);
             System.exit(1);
