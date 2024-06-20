@@ -93,7 +93,10 @@ public class LaunchClassLoader extends URLClassLoader {
 
     private final ThreadLocal<byte[]> loadBuffer = ThreadLocal.withInitial(() -> new byte[BUFFER_SIZE]);
 
-    private static final String[] RESERVED_NAMES = {"CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
+    private static final String[] RESERVED_NAMES = {
+            "CON", "PRN", "AUX", "NUL",
+            "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+            "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
 
     private static final boolean DEBUG = Boolean.getBoolean("legacy.debugClassLoading");
     private static final boolean DEBUG_FINER = DEBUG && Boolean.getBoolean("legacy.debugClassLoadingFiner");
@@ -264,16 +267,29 @@ public class LaunchClassLoader extends URLClassLoader {
                             pkg = definePackage(packageName, manifest, jarURLConnection.getJarFileURL());
                         } else {
                             if (pkg.isSealed() && !pkg.isSealed(jarURLConnection.getJarFileURL())) {
-                                logger.error("The jar file {} is trying to seal already secured path {}", jarFile.getName(), packageName);
+                                logger.error("The jar file {} is trying to seal already secured path {}",
+                                        jarFile.getName(),
+                                        packageName);
                             } else if (isSealed(packageName, manifest)) {
-                                logger.error("The jar file {} has a security seal for path {}, but that path is defined and not secure", jarFile.getName(), packageName);
+                                logger.error("The jar file {} has a security seal for path {}, but that path is defined and not secure",
+                                        jarFile.getName(),
+                                        packageName);
                             }
                         }
                     }
                 } else {
                     Package pkg = getDefinedPackage(packageName);
                     if (pkg == null) {
-                        pkg = definePackage(packageName, null, null, null, null, null, null, null);
+                        pkg = definePackage(
+                                packageName,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null,
+                                null
+                        );
                     } else if (pkg.isSealed()) {
                         URL url = urlConnection != null ? urlConnection.getURL() : null;
                         logger.error("The URL {} is defining elements for sealed path {}", url, packageName);
@@ -282,8 +298,16 @@ public class LaunchClassLoader extends URLClassLoader {
             }
 
             // Define class
-            final CodeSource codeSource = urlConnection == null ? null : new CodeSource(urlConnection.getURL(), signers);
-            final Class<?> clazz = defineClass(transformedName, transformedClass, 0, transformedClass.length, codeSource);
+            final CodeSource codeSource = urlConnection == null ?
+                    null :
+                    new CodeSource(urlConnection.getURL(), signers);
+            final Class<?> clazz = defineClass(
+                    transformedName,
+                    transformedClass,
+                    0,
+                    transformedClass.length,
+                    codeSource
+            );
             cachedClasses.put(transformedName, clazz);
             return clazz;
         } catch (Exception e) {
@@ -444,7 +468,10 @@ public class LaunchClassLoader extends URLClassLoader {
     }
 
     private void saveTransformedClass(byte @NotNull [] data, @NotNull String transformedName) throws IOException {
-        Path classFile = Paths.get(DUMP_PATH.toString(), transformedName.replace('.', File.separatorChar) + ".class");
+        Path classFile = Paths.get(
+                DUMP_PATH.toString(),
+                transformedName.replace('.', File.separatorChar) + ".class"
+        );
 
         if (Files.notExists(classFile.getParent()))
             Files.createDirectories(classFile);

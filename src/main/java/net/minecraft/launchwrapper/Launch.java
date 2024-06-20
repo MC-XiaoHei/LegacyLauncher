@@ -24,7 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class Launch {
-    private static final Logger logger = LoggerFactory.getLogger("LaunchWrapper");    private static final String DEFAULT_TWEAK = "org.spongepowered.asm.launch.MixinTweaker";
+    private static final Logger logger = LoggerFactory.getLogger("LaunchWrapper");
+    private static final String DEFAULT_TWEAK = "org.spongepowered.asm.launch.MixinTweaker";
     public static LaunchClassLoader classLoader;
     public static Map<String,Object> blackboard = new HashMap<>();
 
@@ -68,7 +69,10 @@ public class Launch {
         final OptionParser parser = new OptionParser();
         parser.allowsUnrecognizedOptions();
 
-        final OptionSpec<String> tweakClassOption = parser.accepts("tweakClass", "Tweak class(es) to load").withRequiredArg().defaultsTo(DEFAULT_TWEAK);
+        final OptionSpec<String> tweakClassOption = parser
+                .accepts("tweakClass", "Tweak class(es) to load")
+                .withRequiredArg()
+                .defaultsTo(DEFAULT_TWEAK);
         final OptionSpec<String> nonOption = parser.nonOptions();
 
         final OptionSet options = parser.parse(args);
